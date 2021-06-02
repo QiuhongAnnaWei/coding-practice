@@ -19,7 +19,7 @@ class SLinkedList:
             printval = printval.nextNode
 
     def insertAtBeginning(self, newVal): # O(1)
-        """Insert new node at end"""
+        """Insert new node at the beginning"""
         newNode = SLLNode(newVal)
         newNode.nextNode = self.headNode
         self.headNode = newNode

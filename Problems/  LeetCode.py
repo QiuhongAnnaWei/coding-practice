@@ -2,7 +2,7 @@
 class ListNode:
     def __init__(self, val=0, next=None):
         self.val = val
-        self.next = next
+        self.next = next # another node
     
     @classmethod
     def makeFromList(cls, l):
@@ -65,8 +65,14 @@ class Q1: # EASY | def twoSum(self, nums: List[int], target: int) -> List[int]:
     def test():
         q1 = Q1()
         print(q1.twoSum([1, 2, 3], 4))
+    
+    @classmethod
+    def test_cls(cls):
+        q1 = cls()
+        print(q1.twoSum([1, 2, 3], 4))
 
 # Q1.test()
+# Q1.test_cls()
 
 
 class Q2: # MEDIUM | def addTwoNumbers(self, l1: ListNode, l2: ListNode) -> ListNode:
@@ -1447,3 +1453,187 @@ class Q46: # MEDIUM | def permute(self, nums: List[int]) -> List[List[int]]:
         print("expected [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]] |", q46.permute([1,2,3]))
 
 # Q46.test()
+
+
+class Q48: # MEDIUM | def rotate(self, matrix: List[List[int]]) -> None:
+    # https://leetcode.com/problems/rotate-image/
+    # You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise).
+    # You have to rotate the image in-place, which means you have to modify the input 2D matrix directly.
+    # DO NOT allocate another 2D matrix and do the rotation.
+
+    ## orig(r, c) -> orig(c, sideLen-r-1)
+    ## for each square ring, for each set of 4 symmetric values, circularly reassign
+    def rotate(self, matrix):
+        """
+        Do not return anything, modify matrix in-place instead.
+        """
+        if len(matrix) == 1:
+            return matrix
+        side = len(matrix)
+        for ringIdx in range(side//2): # top left of the ring = (ringIdx, ringIdx)
+            for i in range(ringIdx, side-ringIdx-1):
+                r, c = ringIdx, i
+                toreplace = matrix[r][c]
+                for _ in range(4): # 4 sides
+                    replaced = matrix[c][side-r-1]
+                    matrix[c][side-r-1] = toreplace
+                    toreplace = replaced
+                    r, c = c, side-r-1             
+    ### Time: at max go through each cell once -> O(number of cells) ###
+    ### Space: O(1) ###
+        
+    @staticmethod
+    def test():
+        q48=Q48()
+        matrix = [[1]]
+        q48.rotate(matrix)
+        print([[1]] == matrix)
+
+        matrix = [[1,2],[3,4]]
+        q48.rotate(matrix)
+        print([[3,1],[4,2]]== matrix)
+
+        matrix = [[1,2,3],[4,5,6],[7,8,9]]
+        q48.rotate(matrix)
+        print([[7,4,1],[8,5,2],[9,6,3]] == matrix)
+
+        matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]
+        q48.rotate(matrix)
+        print([[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]] == matrix)
+
+# Q48.test()
+
+
+class Q49: # MEDIUM | def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+    # https://leetcode.com/problems/group-anagrams/
+    # Given an array of strings strs, group the anagrams together. You can return the answer in any order.
+    # An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, 
+    # typically using all the original letters exactly once.
+    
+    def groupAnagrams(self, strs):
+        if len(strs) == 1:
+            return [strs]
+        d = {}
+        for str in strs: # O(n * )
+            key = ''.join(sorted(str))
+            if key in d.keys():
+                d[key].append(str)
+            else:
+                d[key] = [str]
+        return list(d.values()) # O(n)
+    
+    ### Time: for each of n str in strs, sorted+join -> n * (slogs+s) -> O(n * slogs)###
+
+    @staticmethod
+    def test():
+        q49=Q49()
+        print([[""]]==q49.groupAnagrams([""]))
+        print([["a"]]==q49.groupAnagrams(["a"]))
+        print('expected [["bat"],["nat","tan"],["ate","eat","tea"]] |', q49.groupAnagrams(["eat","tea","tan","ate","nat","bat"]))
+
+# Q49.test()
+
+class Q53: # EASY | def maxSubArray(self, nums: List[int]) -> int:
+    # https://leetcode.com/problems/maximum-subarray/
+    # Given an integer array nums, find the contiguous subarray (containing at least one number)
+    # which has the largest sum and return its sum.
+
+    ## maxSum(int) to store the max value so far
+    def maxSubArray(self, nums):
+        if len(nums) == 1:
+            return nums[0]
+        maxSum, curSum = nums[0], nums[0] # subarray must have ≥ 1 number
+        for i in range(1, len(nums)):
+            curSum = max(curSum+nums[i], nums[i])
+            maxSum = max(maxSum, curSum)
+        return maxSum
+            
+    ## maxSoFar(list) to store max up until each index
+    def maxSubArray_list(self, nums):
+        if len(nums) == 1:
+            return nums[0]
+        maxSoFar = [nums[0]]
+        for i in range(1, len(nums)):
+            maxSoFar.append(max(maxSoFar[i-1]+nums[i], nums[i]))
+        return max(maxSoFar) # O(n)
+            
+    ### Time(for both): traverse through list, constant at each step (+ max(), whihc is O(n)) -> O(n) ###
+    ### Space: O(1) vs. O(n) ###
+
+    @staticmethod
+    def test():
+        q53=Q53()
+        print(1==q53.maxSubArray([1]))
+        print(6==q53.maxSubArray([2, 2, 2]))
+        print(4==q53.maxSubArray([2, 2, -2, 2]))
+        print(6==q53.maxSubArray([-2,1,-3,4,-1,2,1,-5,4]))
+        print(23==q53.maxSubArray([5,4,-1,7,8]))
+
+# Q53.test()
+
+
+class Q55: # MEDIUM | def canJump(self, nums: List[int]) -> bool:
+    # https://leetcode.com/problems/jump-game/
+    # Given an array of non-negative integers nums, you are initially positioned at the first index of the array.
+    # Each element in the array represents your maximum jump length at that position.
+    # Determine if you are able to reach the last index.
+
+    ## traverse nums from the back, decreasing destIdx as we find a way to reach it
+    def canJump_back(self, nums):
+        if len(nums) == 1:
+            return True
+        destIdx = len(nums)-1
+        for i in range(len(nums)-1)[::-1]:
+            if i+nums[i] >= destIdx:
+                destIdx = i # new destination
+        return destIdx==0 # arrived at the start of the list
+    ### Time: O(n) ###
+
+    ## stores max index that can be reached
+    def canJump_forward(self, nums):
+        if len(nums) == 1:
+            return True
+        maxIdx = nums[0]
+        if maxIdx >= len(nums)-1:
+            return True
+        for i in range(1, len(nums)-1):
+            if i > maxIdx: # NOTE: beyond what can be reached
+                return False
+            maxIdx = max(maxIdx, i + nums[i])
+            if maxIdx >= len(nums)-1:
+                return True
+        return False
+    ### Time: O(n) ###
+        
+    ## take a range's step one jump at a time until the range of the step >= end (similar to Q45's solution)
+    def canJump_step(self, nums):
+        if len(nums) == 1:
+            return True
+        destIdx = len(nums)-1
+        l, r = 0, nums[0] # inclusive indices of range of a particular number of jumps, initialized to range of the first jump
+        while r < destIdx:
+            farthestIdx = r
+            for i in range(l, r+1):
+                if i+nums[i]>=destIdx:
+                    return True
+                else:
+                    farthestIdx = max(farthestIdx, i+nums[i])
+            if farthestIdx == r: # cannot move any further
+                return False
+            else:
+                l, r = r, farthestIdx
+        return True # r >= destIdx
+    ### Time: O(n) ###
+
+    @staticmethod
+    def test():
+        q55 = Q55()
+        print(True==q55.canJump([1]))
+        print(True==q55.canJump([0]))
+        print(False==q55.canJump([0, 0]))
+        print(True==q55.canJump([1, 0]))
+        print(True==q55.canJump([2,3,1,1,4]))
+        print(True==q55.canJump([1,1,1,1,1,1,1,1]))
+        print(False==q55.canJump([3,2,1,0,4]))
+    
+# Q55.test()

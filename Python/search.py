@@ -68,7 +68,7 @@ def dfs_non_recursive(graph, source):
     visited = []
     stack = [source]
     while stack:
-        s = stack.pop()
+        s = stack.pop() # (only diff from bfs)
         if s not in visited:
             visited.append(s) # add node to list of visited nodes
         # NOTE: should add else here? if visited, then continue to next loop
@@ -117,7 +117,7 @@ def bfs(graph, start):
     explored = [] # all visited nodes
     queue = [start] #n nodes to be checked
     while queue:
-        s = queue.pop(0) # pop first node from queue
+        s = queue.pop(0) # pop first node from queue (only diff from dfs_non_recursive)
         if s not in explored:
             explored.append(s) # add node to list of visited nodes
         if s in graph: # not leaf node, has children/neighbor
