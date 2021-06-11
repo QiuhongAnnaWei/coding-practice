@@ -1455,6 +1455,7 @@ class Q46: # MEDIUM | def permute(self, nums: List[int]) -> List[List[int]]:
 # Q46.test()
 
 
+
 class Q48: # MEDIUM | def rotate(self, matrix: List[List[int]]) -> None:
     # https://leetcode.com/problems/rotate-image/
     # You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise).
@@ -1504,6 +1505,7 @@ class Q48: # MEDIUM | def rotate(self, matrix: List[List[int]]) -> None:
 # Q48.test()
 
 
+
 class Q49: # MEDIUM | def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
     # https://leetcode.com/problems/group-anagrams/
     # Given an array of strings strs, group the anagrams together. You can return the answer in any order.
@@ -1532,6 +1534,8 @@ class Q49: # MEDIUM | def groupAnagrams(self, strs: List[str]) -> List[List[str]
         print('expected [["bat"],["nat","tan"],["ate","eat","tea"]] |', q49.groupAnagrams(["eat","tea","tan","ate","nat","bat"]))
 
 # Q49.test()
+
+
 
 class Q53: # EASY | def maxSubArray(self, nums: List[int]) -> int:
     # https://leetcode.com/problems/maximum-subarray/
@@ -1570,6 +1574,7 @@ class Q53: # EASY | def maxSubArray(self, nums: List[int]) -> int:
         print(23==q53.maxSubArray([5,4,-1,7,8]))
 
 # Q53.test()
+
 
 
 class Q55: # MEDIUM | def canJump(self, nums: List[int]) -> bool:
@@ -1637,3 +1642,398 @@ class Q55: # MEDIUM | def canJump(self, nums: List[int]) -> bool:
         print(False==q55.canJump([3,2,1,0,4]))
     
 # Q55.test()
+
+
+
+class Q56: # MEDIUM | def merge(self, intervals: List[List[int]]) -> List[List[int]]:
+    # https://leetcode.com/problems/merge-intervals/
+    # Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals,
+    # and return an array of the non-overlapping intervals that cover all the intervals in the input.
+    
+    # sort by start_i and then traverse comparing end of interval_i to start of interval_i+1
+    def merge(self, intervals):
+        if len(intervals) == 1:
+            return intervals
+        intervals.sort(key=lambda interval:interval[0]) # sort in place by starting index - O(n log n)
+        output = []
+        s=0 # index of start for current output interval
+        e=0 # index of end for current output interval
+        for i in range(1, len(intervals)):
+            if intervals[e][1]<intervals[i][0]: # can start new interval in output
+                output.append([intervals[s][0], intervals[e][1]])
+                s, e = i, i
+            else: # overlap
+                if intervals[i][1]>=intervals[e][1]:
+                    e=i # keep end as the max among overlapping intervals
+        output.append([intervals[s][0], intervals[e][1]])
+        return output
+    ### Time: n=len(intervals); O(n log n) + O(n) -> O(n log n) ###
+    ### Space: output-O(n) + s,e - O(1) -> O(n) ###
+    
+    @staticmethod
+    def test():
+        q56=Q56()
+        print([[0,6]] == q56.merge([[0,6]]))
+        print([[0,0], [1,1], [3,6]] == q56.merge([[0,0], [1,1], [3,6]]))
+        print([[0,0], [1,1]] == q56.merge([[0,0], [1,1], [1,1]]))
+        print([[1,5]] == q56.merge([[1,4], [4,5]]))
+        print([[1,2]] == q56.merge([[1,2],[1,2]]))
+        print([[1,3]] == q56.merge([[1,2],[1,3]]))
+        print([[1,3]] == q56.merge([[1,3],[1,2]]))
+        print([[1,5]] == q56.merge([[1,5],[2,3]])) 
+        print([[1,5]] == q56.merge([[1,5],[2,3],[4,5]])) 
+        print([[1,6]] == q56.merge([[2,3],[4,6],[1,5]])) 
+        print([[1,6],[10,11]] == q56.merge([[10,11],[2,3],[1,5],[4,6]])) 
+        print([[10, 28]] == q56.merge([[10,12],[12,25],[22,28]]))
+        print([[10, 25]] == q56.merge([[10,12],[12,25],[22,24]]))
+        print([[1,6], [8,10], [15,18]] == q56.merge([[1,3],[2,6],[8,10],[15,18]]))
+        print([[1,6], [8,10], [15,18]] == q56.merge([[2,6],[8,10],[15,18],[1,3]]))  
+
+# Q56.test()
+
+
+
+class Q62: # MEDIUM |  def uniquePaths(self, m: int, n: int) -> int:
+    # https://leetcode.com/problems/unique-paths/
+    # A robot is located at the top-left corner of a m x n grid.
+    # The robot can only move either down or right at any point in time. 
+    # The robot is trying to reach the bottom-right corner of the grid
+    # How many possible unique paths are there?
+    
+    ## Math approach: a path can be represented as D D R R R -> 2 ways to think about it
+        ## 1. permutations with repeats: arrange (m-1)D's and (n-1)R's -> [(m-1+n-1)!]/[(m-1)!*(n-1)!]
+        ## 2. combinations: select (m-1) or (n-1) positions out of (m-1+n-1) -> [(m-1+n-1)!]/[(m-1)!*(n-1)!]
+    
+    ## optimized dp: bottom row and rightmost column always 1
+    def uniquePaths(self, m, n):
+        dp=[ [1 for _ in range(n)] for _ in range(m)]
+        for m_i in range(1, m): # row by row from bottom up
+            for n_i in range(1, n): # right to left of each row
+                    dp[m_i][n_i]= dp[m_i-1][n_i] + dp[m_i][n_i-1] ## NOTE: core of dp: down + right
+        return dp[m-1][n-1]
+    ## dp[m][n]: number of ways to reach bottom right starting at m above and n to the left
+    ## NOTE: core of dp -> dp[m][n] = 1*ways from 1 down ([m-1][n]) + 1*ways from 1 right ([m][n-1])
+    ## To fill dp[m][n]: need to fill [<m, <n] - all other cells in the rectangle where m,n is top left
+    def uniquePaths_dpinit(self, m, n):
+        # m: rows/height/downs, n:columns/width/right
+        dp=[ [0 for _ in range(n)] for _ in range(m)]
+        dp[0][0] = 1
+        for m_i in range(m): # row by row from bottom up
+            for n_i in range(n): # right to left of each row
+                if not (m_i==0 and n_i==0):
+                    down = dp[m_i-1][n_i] if m_i > 0 else 0 # 1 way to go down
+                    right = dp[m_i][n_i-1] if n_i > 0 else 0 # 1 way to go right
+                    dp[m_i][n_i]= down + right
+        return dp[m-1][n-1]
+    ### Time: O(mn) - iterate through each cell once ### 
+    ### Space: O(mn) - dp ###
+
+    @staticmethod
+    def test():
+        q62 = Q62()
+        print(1==q62.uniquePaths(1,1))
+        print(3==q62.uniquePaths(3,2))
+        print(3==q62.uniquePaths(2,3))
+        print(6==q62.uniquePaths(3,3))
+        print(28==q62.uniquePaths(7,3))
+
+# Q62.test()
+
+
+class Q64: # MEDIUM | def minPathSum(self, grid: List[List[int]]) -> int:
+    # https://leetcode.com/problems/minimum-path-sum/
+    # Given a m x n grid filled with non-negative numbers, find a path from top left to bottom right,
+    # which minimizes the sum of all numbers along its path.
+    # Note: You can only move either down or right at any point in time.
+
+    # Related: similar set up to Q62
+
+
+    ## dp[r][c]=min path sum from (0, 0) -> can directly use grid for it (modify in place)
+    ## fill all to (r, c)'s left and top first: (r, c) is like bottom right of a smaller rectangle
+    ## NOTE: core of dp - dp[r][c] = min(dp[r][c-1], dp[r-1][c]) + grid[r][c]
+    def minPathSum(self, grid):
+        for r in range(len(grid)): # row by row from top down
+            for c in range(len(grid[0])): # left to right
+                if r == 0 and c==0:
+                    continue
+                if r==0:
+                    grid[r][c] += grid[r][c-1]
+                elif c==0:
+                    grid[r][c] += grid[r-1][c]
+                else:
+                    grid[r][c] += min(grid[r][c-1], grid[r-1][c]) ## NOTE: core of dp - min(left, top)
+        return grid[len(grid)-1][len(grid[0])-1]
+    
+    ### Time: traverse through each node once * O(1) at each traversal ->  O(mn) ###
+    ### Space: O(1) ###
+
+    @staticmethod
+    def test():
+        q64 = Q64()
+        print(1==q64.minPathSum([[1]]))
+        print(7==q64.minPathSum([[1,3,1],[1,5,1],[4,2,1]]))
+        print(12==q64.minPathSum([[1,2,3],[4,5,6]]))
+        print(10==q64.minPathSum([[4,5,6],[1,2,3]]))
+
+# Q64.test()
+
+
+
+class Q70: # EASY | def climbStairs(self, n: int) -> int:
+    # https://leetcode.com/problems/climbing-stairs/
+    # You are climbing a staircase. It takes n steps to reach the top.
+    # Each time you can either climb 1 or 2 steps. 
+    # In how many distinct ways can you climb to the top?
+
+
+    ## NOTE: core of dp -> ways(n) = ways(n-1) + ways(n-2)
+    ## To reach step n: reach n-1 then 1 step + reach n-1 then 2 steps
+    def climbStairs(self, n):
+        if n < 4:
+            return n
+        first, second = 2, 3 # for n=2, n=3 (since we only need to keep the last two)
+        for n in range(4, n):
+            first, second = second, first+second ## NOTE: core of dp
+        return first+second
+        
+    ### Time: (n-4) loops * O(1) per loop -> O(n)  ### 
+    ### Memory: first + second + n -> O(1)
+
+    @staticmethod
+    def test():
+        q70 = Q70()
+        print(1==q70.climbStairs(1))
+        print(2==q70.climbStairs(2))
+        print(3==q70.climbStairs(3))
+        print(5==q70.climbStairs(4))
+        print(8==q70.climbStairs(5))
+        print(987==q70.climbStairs(15))
+
+# Q70.test()
+
+
+
+class Q72: # HARD | def minDistance(self, word1: str, word2: str) -> int:
+    # https://leetcode.com/problems/edit-distance/
+    # Given two strings word1 and word2, return the minimum number of operations required to convert word1 to word2.
+    # You have the following three operations permitted on a word:
+        # Insert a character
+        # Delete a character
+        # Replace a character
+
+    # NOTE about edit distance:
+        # At each char, if more of both words: 0 operation {go to next char}(match) or 1 opertaion {insert, delete, replace}(mismatch)
+        # The 3 operations all correspond to a change of the index pointers of the two words
+    
+    ## 1. DP: remember minDistance(w1i,w2i) for (w1i,w2i) bottom up (smaller -> larger string)
+    ## NOTE: core of dp - dp[(w1i,w2i)]=topleft if match else 1+ min(topleft, left, top)
+    # filling from top left to bottom right; dp[w2ct][w1ct]: w2ct chars of w2 remains to be matched and w1ct chars of w2 remain
+    def minDistance_dp(self, word1, word2):
+        dp = [ [0 for _ in range(len(word1)+1)] for _ in range(len(word2)+1)] # each row: 1 particular remaning numChar for w2
+        for w1ct in range(1, len(word1)+1):
+            dp[0][w1ct] = w1ct
+        for w2ct in range(1, len(word2)+1):
+            dp[w2ct][0] = w2ct
+        
+        for w2ct in range(1, len(word2)+1): # row by row top down
+            for w1ct in range(1, len(word1)+1): # left to right
+                if word1[len(word1)-w1ct] == word2[len(word2)-w2ct]:
+                    dp[w2ct][w1ct] = dp[w2ct-1][w1ct-1] ## NOTE
+                else:
+                    dp[w2ct][w1ct] = 1 + min(dp[w2ct-1][w1ct-1], dp[w2ct][w1ct-1], dp[w2ct-1][w1ct]) ## NOTE
+        return dp[len(word2)][len(word1)] # bottom right
+    ### Time: traverse through each cell * O(1) at each cell -> O(len(w1) * len(w2)) ###
+    ### Space: dp -> O(len(w1) * len(w2)) ###
+
+
+    ## 2. Memoiaztion: remember minDistance(w1i,w2i) for (w1i,w2i) top down: if remember return, else fill through recursion
+    def minDistance_memoization(self, word1, word2):
+        mem = {} # {(w1i,w2i):edit distance} - mutable/pass by reference
+        self.minDistance_memHelper(word1, word2, 0, 0, mem)
+        return mem[(0,0)]
+
+    def minDistance_memHelper(self, w1, w2, w1i, w2i, mem):
+        if (w1i,w2i) in mem:
+            return mem[(w1i,w2i)]
+        else: # not in mem: fill through recursion
+            # base case
+            if w1i==len(w1) and w2i==len(w2):
+                ans = 0
+            elif w1i==len(w1): # more of w2 remains
+                ans =  len(w2)-w2i
+            elif w2i==len(w2): # more of w1 remains
+                ans = len(w1)-w1i
+            # general case: more of both words remain
+            elif w1[w1i]==w2[w2i]:
+                ans = self.minDistance_memHelper(w1,w2,w1i+1,w2i+1, mem)
+            else: # all operations done to word1
+                insert = 1 + self.minDistance_memHelper(w1, w2, w1i, w2i+1, mem)
+                delete = 1 + self.minDistance_memHelper(w1, w2, w1i+1, w2i, mem)
+                replace = 1 + self.minDistance_memHelper(w1, w2, w1i+1, w2i+1, mem)
+                ans = min(insert, delete, replace)
+            mem[(w1i,w2i)] = ans
+            return mem[(w1i,w2i)]
+            
+
+    ## 3. Recursion: at each mismatched char, start 3 recursive branches, then find min of these 3 branches
+    ## A lot of overlapping operations
+    def minDistance_recursive(self, word1, word2):
+        return self.minDistance_recHelper(word1, word2, 0, 0)
+        
+    def minDistance_recHelper(self, w1, w2, w1i, w2i):
+        # base case
+        if w1i==len(w1) and w2i==len(w2):
+            return 0
+        elif w1i==len(w1): # more of w2 remains
+            return len(w2)-w2i
+        elif w2i==len(w2): # more of w1 remains
+            return len(w1)-w1i
+        # general case: more of both words remain
+        if w1[w1i]==w2[w2i]:
+            return self.minDistance_recHelper(w1,w2,w1i+1,w2i+1)
+        else: # all operations done to word1
+            insert = 1 + self.minDistance_recHelper(w1, w2, w1i, w2i+1)
+            delete = 1 + self.minDistance_recHelper(w1, w2, w1i+1, w2i)
+            replace = 1 + self.minDistance_recHelper(w1, w2, w1i+1, w2i+1)
+            return min(insert, delete, replace)
+
+    
+    @staticmethod
+    def test():
+        q72 = Q72()
+        print(0==q72.minDistance_dp("",""))
+        print(1==q72.minDistance_dp("","a"))
+        print(2==q72.minDistance_dp("ab",""))
+        print(3==q72.minDistance_dp("horse","ros"))
+        print(5==q72.minDistance_dp("intention","execution"))
+
+# Q72.test()
+
+
+
+### REVIEW: sort
+class Q75: # MEDIUM | def sortColors(self, nums: List[int]) -> None:
+    # https://leetcode.com/problems/sort-colors/
+    # Given an array nums with n objects colored red, white, or blue, sort them in-place so that 
+    # objects of the same color are adjacent, with the colors in the order red, white, and blue.
+    # We will use the integers 0, 1, and 2 to represent the color red, white, and blue, respectively.
+    # You must solve this problem without using the library's sort function.
+
+    ## one pass: keep track of next0pos(rightmost) and next2pos(leftmost)
+    ## REVIEW
+    def sortColors(self, nums):
+        """
+        Do not return anything, modify nums in-place instead.
+        """
+        if len(nums) == 1:
+            return
+        next0pos = 0 # <= curr, all to its left == 0
+        next2pos = len(nums)-1 # >= curr, all to its right == 2
+        curr = 0
+        while curr <= next2pos: # when =, knows all to the right == 2
+            if nums[curr] == 0: # move 0 to the block of 0s at the left
+                nums[curr], nums[next0pos] = nums[next0pos], nums[curr]
+                next0pos += 1
+                curr += 1 # new nums[curr] only possible to be 0 or 1
+            elif nums[curr] == 1:
+                curr += 1
+            elif nums[curr] == 2:
+                nums[curr], nums[next2pos] = nums[next2pos], nums[curr]
+                next2pos -= 1 # do not know what nums[curr] may be, cannot += 1
+    ### Time: sinlge pass -> O(n) ###
+    ### Space: 3 pointser -> O(1) ###
+    
+    ## brute force: at each char, find min in the remaining ones
+    def sortColors_assignEachPos(self, nums):
+        """
+        Do not return anything, modify nums in-place instead.
+        """
+        if len(nums) == 1:
+            return
+        for i in range(len(nums)):
+            min = nums[i]
+            minIdx = i
+            for j in range(i, len(nums)):
+                if nums[j] < min:
+                    minIdx = j
+                    min = nums[j]
+            nums[i], nums[minIdx] = nums[minIdx], nums[i]
+    ### Time: n+n-1+n-2+...+2+1 -> (n+1)*(n)/2 -> O(n^2) ###
+    ### Space: i, min, minIdx, j -> O(1) ###
+        
+    @staticmethod
+    def test():
+        q75=Q75()
+        nums = [1]
+        q75.sortColors(nums)
+        print([1]==nums)
+        nums = [0,1,2]
+        q75.sortColors(nums)
+        print([0,1,2]==nums)
+        nums = [2,0,1]
+        q75.sortColors(nums)
+        print([0,1,2]==nums)
+        nums = [1,2,0]
+        q75.sortColors(nums)
+        print([0,1,2]==nums)
+        nums = [2,1,0]
+        q75.sortColors(nums)
+        print([0,1,2]==nums)
+
+        nums = [0,0,0]
+        q75.sortColors(nums)
+        print([0,0,0]==nums)
+        nums = [1,1,1]
+        q75.sortColors(nums)
+        print([1,1,1]==nums)
+        nums = [2,2,2]
+        q75.sortColors(nums)
+        print([2,2,2]==nums)
+
+        nums = [2,0,2,2]
+        q75.sortColors(nums)
+        print([0,2,2,2]==nums)
+        nums = [2,2,2,1]
+        q75.sortColors(nums)
+        print([1,2,2,2]==nums)
+        nums = [0,1,0,1]
+        q75.sortColors(nums)
+        print([0,0,1,1]==nums)
+        
+        nums = [2,0,2,1,1,0]
+        q75.sortColors(nums)
+        print([0,0,1,1,2,2]==nums)
+        nums = [1,2,0,1,2,0,0,0,2,1,0]
+        q75.sortColors(nums)
+        print([0,0,0,0,0,1,1,1,2,2,2]==nums)
+
+# Q75.test()
+
+
+
+class Q78: # MEDIUM | def subsets(self, nums: List[int]) -> List[List[int]]:
+    # https://leetcode.com/problems/subsets/
+    # Given an integer array nums of unique elements, return all possible subsets (the power set).
+    # The solution set must not contain duplicate subsets. Return the solution in any order.
+
+    ## absent/present  for each num -> 2^(nums_len) -> recursion
+    def subsets(self, nums):
+        ps = [ [], [nums[0]]]
+        for i in range(1, len(nums)):
+            for subset in ps.copy(): # avoid infinite loop
+                ps.append(subset+[nums[i]]) # don't want to modify subset in place
+                # if absent, does not modify original subset
+        return ps
+        
+    ### Time: iterate through each of 2^nums_len subsets once * O(1) for each -> O(2^nums_len) ###
+    ### Memory: ps is O(2^nums_len) + ps.copy() is bounded by 2^nums_len-1 ->  O(2^nums_len) ###
+        
+    @staticmethod
+    def test():
+        q78 = Q78()
+        print([[],[1]]==q78.subsets([1]))
+        print([[],[1],[2],[1,2]]==q78.subsets([1,2]))
+        print([[],[1],[2],[1,2],[-3],[1,-3],[2,-3],[1,2,-3]]==q78.subsets([1,2,-3]))
+
+Q78.test()
