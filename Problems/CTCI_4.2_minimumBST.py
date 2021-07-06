@@ -67,14 +67,14 @@ def create_minBST_helper(l, startIdx, endIdx):
 # can calculate the expected level: log_2(number of elements) => round up to nearest int
 ## log_2(7) < 3  => 3
 
-result = create_minBST([10, 20, 30, 40, 50, 60, 70, 80, 90])
-print(result)
-print(result.left)
-print(result.left.left)
-print(result.left.right)
-print(result.right)
-print(result.right.left)
-print(result.right.right)
+# result = create_minBST([10, 20, 30, 40, 50, 60, 70, 80, 90])
+# print(result)
+# print(result.left)
+# print(result.left.left)
+# print(result.left.right)
+# print(result.right)
+# print(result.right.left)
+# print(result.right.right)
 # can calculate the expected level: log_2(number of elements) => round up to nearest int
 ## log_2(9) < 4  => 4
 

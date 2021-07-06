@@ -28,6 +28,12 @@ class ListNode:
             curNode = curNode.next
         return ", ".join(s_list)
 
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
 
 class Q1: # EASY | def twoSum(self, nums: List[int], target: int) -> List[int]:
     # https://leetcode.com/problems/two-sum/
@@ -372,6 +378,8 @@ class Q11: # MEDIUM | def maxArea(self, height: List[int]) -> int:
     # n vertical lines are drawn such that the two endpoints of the line i is at (i, ai) and (i, 0).
     # Find two lines, which, together with the x-axis forms a container, such that the container contains the most water.
 
+    # RELATED: Q42, Q84
+
     ## Only worth it to shrink width if height can increase (move lower of the 2 ends)
     ## Area may or may not increase with the shrink -> necessary to try the solution space
     def maxArea(self, height) -> int:
@@ -428,7 +436,7 @@ class Q15: # MEDIUM | def threeSum(self, nums: List[int]) -> List[List[int]]:
         
         nums.sort() # sort in place - O(n log n)
         lastele1 = None
-        for ele1Idx in range(0, len(nums)-2): #last 2 num don't have enough num to its right
+        for ele1Idx in range(0, len(nums)-2): # last 2 num don't have enough num to its right
             if nums[ele1Idx] > 0: # target<0, but not possible with remaining elements
                 return tripArr
             if lastele1 is not None and nums[ele1Idx] == lastele1:
@@ -1336,7 +1344,7 @@ class Q42: # HARD | def trap(self, height: List[int]) -> int:
                 while len(decreaseStack)>0:
                     decreaseIdx, h = decreaseStack[-1]
                     if height[decreaseIdx] <= height[i+1]:
-                        decreaseStack.pop()
+                        decreaseStack.pop() # all the water that can be trapped already added (shorter of the 2 decides this)
                         water += (i-decreaseIdx)*h
                     else: # first one where height[decreaseIdx] > height[i+1]
                         diff = height[decreaseIdx] - height[i+1]
@@ -1542,7 +1550,7 @@ class Q53: # EASY | def maxSubArray(self, nums: List[int]) -> int:
     # Given an integer array nums, find the contiguous subarray (containing at least one number)
     # which has the largest sum and return its sum.
 
-    ## maxSum(int) to store the max value so far
+    ## maxSum(int) to store the max value so far (bigger of curSum+nums[i] and nums[i])
     def maxSubArray(self, nums):
         if len(nums) == 1:
             return nums[0]
@@ -1746,7 +1754,7 @@ class Q64: # MEDIUM | def minPathSum(self, grid: List[List[int]]) -> int:
     # which minimizes the sum of all numbers along its path.
     # Note: You can only move either down or right at any point in time.
 
-    # Related: similar set up to Q62
+    # RELATED: similar set up to Q62
 
 
     ## dp[r][c]=min path sum from (0, 0) -> can directly use grid for it (modify in place)
@@ -2012,6 +2020,123 @@ class Q75: # MEDIUM | def sortColors(self, nums: List[int]) -> None:
 
 
 
+### REVIEW: sliding window
+class Q76: # HARD | minWindow(self, s: str, t: str) -> str:
+    # https://leetcode.com/problems/minimum-window-substring/
+    # Given two strings s and t of lengths m and n respectively, return the minimum window substring of s 
+    # such that every character in t (including duplicates) is included in the window. 
+    # If there is no such substring, return the empty string "".
+    # The testcases will be generated such that the answer is unique.
+    # A substring is a contiguous sequence of characters within the string.
+
+    ## Improved Sliding Window: for each char, 1) expand, 2) shrink if possible, 3) update min
+    ## 1) currWin: {char:[idx1, idx2]} -> {char:count} since always need to iterate to shrink anyways
+    ## 2) Cache checking of complete with metCharCt: if a char's count is newly met, metCharCt+=1 (checking becomes O(1))
+    def minWindow(self, s, t):
+        # 1. represent t as dictionary {char: count}
+        vocab = {}
+        for char in t:
+            vocab[char] = vocab[char]+1 if (char in vocab) else 1
+        # 2. keep a curWin as dictionary {char in vocab: count}
+        l, r = 0,0
+        currWin = {} 
+        minLen, minl, minr = -1, -1, -1
+        metCharCt = 0 # monotonically increase (once complete, always complete)
+        while r < len(s):
+            if s[r] in vocab:
+                currWin[s[r]] = currWin[s[r]]+1 if (s[r] in currWin) else 1
+                if currWin[s[r]] == vocab[s[r]]: # first time meeting the requirement
+                    metCharCt += 1
+                if currWin[s[r]] > vocab[s[r]] and s[r]==s[l]: # exceed and can shrink
+                    l+=1
+                    currWin[s[r]]-=1
+                    while l<r:
+                        if s[l] in vocab:
+                            if currWin[s[l]] <= vocab[s[l]]:
+                                break # cannot shrink further
+                            else:
+                                currWin[s[l]]-=1
+                        l+=1
+            else:
+                if len(currWin) == 0: # finding initial left
+                    l+=1
+            # update min
+            if metCharCt == len(vocab) and (minLen==-1 or r-l+1<minLen):
+                minLen = r-l+1
+                minl, minr = l,r
+            r+=1
+        if minLen == -1:
+            return ""
+        else:
+            return s[minl:minr+1]
+    ### Time: vocab = O(t_len) + add and remove each char (max twice) = O(s_len) -> O(t+s) ###
+    ### Space: vocab = O(t) , currWin = O(t) -> O(t) ### 
+
+
+    ## Sliding Window: for each char, 1) expand, 2) shrink if possible, 3) update min
+    def minWindow_badSlidingWin(self, s, t):
+        # 1. represent t as dictionary {char: count}
+        vocab = {}
+        for char in t:
+            vocab[char] = vocab[char]+1 if (char in vocab) else 1
+        # 2. keep a curWin as dictionary {char in vocab: [idx1, idx2]}
+        l, r = 0,0
+        currWin = {}
+        minLen, minl, minr = -1, -1, -1
+        while r < len(s):
+            if s[r] in vocab:
+                if s[r] in currWin:
+                    currWin[s[r]].append(r)
+                    if len(currWin[s[r]]) > vocab[s[r]] and currWin[s[r]][0]==l: # exceed and can shrink
+                        l+=1
+                        currWin[s[r]].pop(0)
+                        while l<r:
+                            if s[l] in vocab:
+                                if len(currWin[s[l]]) <= vocab[s[l]]:
+                                    break # cannot shrink further
+                                else:
+                                    currWin[s[l]].pop(0)
+                            l+=1
+                else:
+                    currWin[s[r]] = [r] # won't exceed count
+            else:
+                if len(currWin) == 0: # finding initial left
+                    l+=1
+                    
+            # update min
+            complete = True
+            for char in vocab:
+                if char not in currWin or len(currWin[char]) < vocab[char]:
+                    complete = False
+            if complete and (minLen==-1 or r-l+1<minLen):
+                minLen = r-l+1
+                minl, minr = l,r
+            r+=1
+        if minLen == -1:
+            return ""
+        else:
+            return s[minl:minr+1] 
+    ### Time: vocab = O(t_len) + add and remove each char (max twice) = O(s_len) + each char check complete O(s*t) -> O(st) ###
+    ### Space: vocab = O(t) , currWin = O(s) -> O(s+t) ### 
+
+    @staticmethod
+    def test():
+        q76 = Q76()
+        print("a"==q76.minWindow("a","a"))
+        print(""==q76.minWindow("a","b"))
+        print(""==q76.minWindow("a","aa"))
+        print("BANC"==q76.minWindow("ADOBECODEBANC","ABC"))
+        print("BAZA"==q76.minWindow("BAZA","BAA"))
+        print("BAZA"==q76.minWindow("BAZA","ABA"))
+        print("BAZA"==q76.minWindow("ZZBAZAZ","BAA"))
+        print("AAB"==q76.minWindow("BAZAABZAA","BAA"))
+        print("BA"==q76.minWindow("AZBBA","AB"))
+        print("BA"==q76.minWindow("ZBAZBBZA","AB"))
+
+# Q76.test()
+
+
+
 class Q78: # MEDIUM | def subsets(self, nums: List[int]) -> List[List[int]]:
     # https://leetcode.com/problems/subsets/
     # Given an integer array nums of unique elements, return all possible subsets (the power set).
@@ -2036,4 +2161,451 @@ class Q78: # MEDIUM | def subsets(self, nums: List[int]) -> List[List[int]]:
         print([[],[1],[2],[1,2]]==q78.subsets([1,2]))
         print([[],[1],[2],[1,2],[-3],[1,-3],[2,-3],[1,2,-3]]==q78.subsets([1,2,-3]))
 
-Q78.test()
+# Q78.test()
+
+
+
+class Q79: # MEDIUM | def exist(self, board: List[List[str]], word: str) -> bool:
+    # https://leetcode.com/problems/word-search/
+    # Given an m x n grid of characters board and a string word, return true if word exists in the grid.
+    # The word can be constructed from letters of sequentially adjacent cells, where adjacent cells are 
+    # horizontally or vertically neighboring. The same letter cell may not be used more than once.
+
+    ## improved dfs: if cur cell matches: go on with word[1:], else return False and go to next start/down next path
+    ### 1. visited set -> modifying board in place
+    ### 2. word[1:] -> index of word
+    ### 3. put checking loop of matching_char into exist(); r,c not last matching index, but curr to check if match
+    def exist(self, board, word):
+        for r in range(len(board)):
+            for c in range(len(board[0])):
+                if self.exist_dfs(board, word, 0, r, c):
+                    return True
+        return False
+
+    def exist_dfs(self, board, word, wIdx, r, c):
+        '''r, c are the indices to check'''
+        if wIdx == len(word):
+            return True
+        else:
+            if word[wIdx] != board[r][c]:
+                return False
+            else:
+                board[r][c]="_" # to avoid using the same cell more than once
+                if (r>0 and self.exist_dfs(board, word, wIdx+1, r-1, c)) or \
+                    (r<len(board)-1 and self.exist_dfs(board, word, wIdx+1, r+1, c)) or \
+                    (c>0 and self.exist_dfs(board, word, wIdx+1, r, c-1)) or \
+                    (c<len(board[0])-1 and self.exist_dfs(board, word, wIdx+1, r, c+1)) or \
+                    (wIdx+1==len(word)): # for len(board) and len(board[0]) = 1
+                    return True
+                board[r][c]=word[wIdx] # changing it back
+                return False
+    ### Time: mn starting char for recursion * (branches=4^depth=word_len) calls *  O(1) per call -> O(mn * 4^word_len) ###
+    ### Space: heap = O(1) since visited is modifying board in place; call stack = depth=word_len -> O(word_len) ###
+
+    ## dfs: find matching first cell, then recursively check 4 adjcent directions for each cell
+    def exist_initialdfs(self, board, word):
+        r, c = self.matching_char(board, 0, -1, word[0])     
+        while r is not None:
+            if self.exist_rec(board, word[1:], r, c, {(r, c)}):
+                return True # else continue looping
+            r, c = self.matching_char(board, r, c, word[0])
+        return False
+            
+    def exist_rec(self, board, word, r, c, visited):
+        '''r, c are the indices of the last matching character'''
+        if len(word) == 0:
+            return True
+        else:
+            if r != 0 and ((r-1,c) not in visited) and board[r-1][c] == word[0]: # top
+                visited.add((r-1,c))
+                if (self.exist_rec(board, word[1:], r-1, c, visited)):
+                    return True
+                visited.remove((r-1,c))
+            if r != len(board)-1 and ((r+1,c) not in visited) and board[r+1][c] == word[0]: # bottom
+                visited.add((r+1,c))
+                if (self.exist_rec(board, word[1:], r+1, c, visited)):
+                    return True
+                visited.remove((r+1,c))
+            if c != 0 and ((r,c-1) not in visited) and board[r][c-1] == word[0]: # left
+                visited.add((r,c-1))
+                if (self.exist_rec(board, word[1:], r, c-1, visited)):
+                    return True
+                visited.remove((r,c-1))
+            if c != len(board[0])-1 and ((r, c+1) not in visited) and board[r][c+1] == word[0]: # right
+                visited.add((r,c+1))
+                if (self.exist_rec(board, word[1:], r, c+1, visited)):
+                    return True
+                visited.remove((r,c+1))
+            return False
+        
+    def matching_char(self, board, r_idx, c_idx, target):
+        '''r_idx, and c_idx are the indices of the last found target'''
+        # check row r_idx
+        for c in range(c_idx+1, len(board[0])):
+            if board[r_idx][c] == target:
+                return r_idx, c
+        # check the other rows
+        for r in range(r_idx+1, len(board)):
+            for c in range(len(board[0])):
+                if board[r][c] == target:
+                    return r, c
+        return None, None
+    
+    @staticmethod
+    def test():
+        q79 = Q79()
+        print(True == q79.exist([["A"]], "A"))
+        print(True == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "C"))
+        print(True == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABC"))
+        print(True == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "CCB"))
+        print(True == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "SA"))
+        print(True == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCCED"))
+        print(True == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "SEE"))
+        print(True == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "SEECCE"))
+        print(False == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCD"))
+        print(False == q79.exist([["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCB"))
+    
+# Q79.test()
+
+
+
+### REVIEW: difficult solution
+class Q84: # HARD | def largestRectangleArea(self, heights: List[int]) -> int:
+    # https://leetcode.com/problems/largest-rectangle-in-histogram/
+    # Given an array of integers heights representing the histogram's bar height where 
+    # the width of each bar is 1, return the area of the largest rectangle in the histogram.
+
+    # RELATED: Q85
+    
+    ## Find maximum width for each bar's height (naive: linear search for each -> O(n^2))
+    ## l,r bound=first bar in that direction shorter than the bar, makes use of sequential location info -> stack
+    ## Within the width (between stack[-1] and curr), the bar is the minimum height
+    ## Once found a bar that is shorter, the bar's height's rectangle is done -> pop
+    def largestRectangleArea(self, heights):
+        maxArea = 0
+        stack = [-1] # stack of indices of candidate heights whose rectangle is not yet determined
+        for i in range(len(heights)): # i is like the right bound
+            # check whether current height terminates any candidate
+            while stack[-1]!=-1 and heights[i] < heights[stack[-1]]: # current height terminates last candidate
+                heightIdx = stack.pop()
+                width = i-stack[-1]-1
+                maxArea = max(maxArea, width*heights[heightIdx])
+            stack.append(i)
+        for _ in range(len(stack)-1): # deal with leftovers in stack
+            heightIdx = stack.pop()
+            width = len(heights)-stack[-1]-1
+            maxArea = max(maxArea, width*heights[heightIdx])  
+
+        return maxArea
+    ### Time: each bar added once (start considering it) and popped once (found its rect) -> O(num_bars) ###
+    ### Space: stack bounded by O(num_bars) -> O(num_bars) ###
+
+
+
+# REVIEW: left/right's representation + how dp is constructed
+class Q85: # HARD | def maximalRectangle(self, matrix: List[List[str]]) -> int:
+    # https://leetcode.com/problems/maximal-rectangle/
+    # Given a rows x cols binary matrix filled with 0's and 1's, find the largest rectangle
+    # containing only 1's and return its area.
+
+    ## 1. For each row, find the width correspondining to each column's height
+    ## left[i] = left bound/leftmost idx(inclusive) for height[i] where all h in between ≥ height[i]; similar for right
+    ## dp: 1. height[i] in row = height[i] in row above + 1 if is 1, else if is 0, =0
+        #  2. left[i] constrained by {unchanged from row-1 if this row has all 1 in area below, where consecutive 1 start this row}
+        #     If at 0 / height[i]=0: left[i]=0 and right[i]=len(row)-1 -> doesn't affect row below
+    def maximalRectangle(self, matrix):
+        if len(matrix) == 0 or len(matrix[0]) == 0:
+            return 0
+        maxArea = 0
+        # don't need to keep row above as update maxArea after traversal through each row
+        rowLen = len(matrix[0])
+        left = [0 for _ in range(rowLen)]
+        right = [rowLen-1 for _ in range(rowLen)]
+        height = [0 for _ in range(rowLen)]
+        for r in range(len(matrix)):
+            lconsec1,rconsec1 = 0, rowLen-1 # where consecutive ones start 
+            for c in range(rowLen):
+                if matrix[r][c]=='0':
+                    height[c]=0
+                    left[c]=0
+                    lconsec1 = c+1
+                else:
+                    height[c]+=1
+                    left[c]=max(left[c], lconsec1) # dp CORE: 2 constraints of row above and this row
+            for c in reversed(list(range(rowLen))):
+                if matrix[r][c]=='0':
+                    right[c] = rowLen-1
+                    rconsec1 = c-1
+                else:
+                    right[c] = min(right[c], rconsec1) # dp CORE: 2 constraints of row above and this row
+            for c in range(rowLen):
+                maxArea = max(maxArea, height[c]*(right[c]-left[c]+1))
+        return maxArea
+    ### Time: for each row, iterate through ele in row 3 times = O(nRow * 3*nCol) -> O(nRow * nCol) ###
+    ### Space: left, right, height = O(3nCol) -> O(nCol) ###
+
+    ## 2. Same as largestRectangleArea: each row=ground with histogram, whose height=count of consecutive 1s from top ending at that row 
+    def maximalRectangle_largestRectangleArea(self, matrix):
+        if not matrix or not matrix[0]:
+            return 0
+        n = len(matrix[0])
+        height = [0] * (n + 1)
+        ans = 0
+        for row in matrix:
+            for i in xrange(n):
+                height[i] = height[i] + 1 if row[i] == '1' else 0
+            stack = [-1]
+            for i in xrange(n + 1):
+                while height[i] < height[stack[-1]]:
+                    h = height[stack.pop()]
+                    w = i - 1 - stack[-1]
+                    ans = max(ans, h * w)
+                stack.append(i)
+        return ans
+    ### Time: for each row, iterate through ele in row 2 times = O(nRow * 2*nCol) -> O(nRow * nCol) ###
+    ### Space: height, stack = O(3nCol) -> O(nCol) ###
+
+    @staticmethod
+    def test():
+        print("### Testing for Q85 ###")
+        q85=Q85()
+        print(0==q85.maximalRectangle([]))
+        print(0==q85.maximalRectangle([[]]))
+        print(0==q85.maximalRectangle([["0"]]))
+        print(1==q85.maximalRectangle([["1"]]))
+        print(2==q85.maximalRectangle([["0","1","1","0","0"]]))
+        print(6==q85.maximalRectangle([["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]]))
+
+# Q85.test()
+
+
+
+class Q96: # MEDIUM | def numTrees(self, n: int) -> int:
+    # https://leetcode.com/problems/unique-binary-search-trees/
+    # Given an integer n, return the number of structurally unique BST's (binary search trees) 
+    # which has exactly n nodes of unique values from 1 to n.
+    
+    ## dp: [number of unique BST for index]
+    ## dp[n] = sum(when each node is root=dp[leftTreeSize] * dp[rightTreeSize])
+    def numTrees(self, n):
+        dp = [1, 1] # 1 way to build a bst with 0 and 1 node
+        for numN in range(2, n+1):
+            numBST = 0
+            for root in range(1, numN+1):
+                numBST+= dp[root-1] * dp[numN-root] # leftTreeSize (node<root) * rightTreeSize (node>root)
+            dp.append(numBST) # at index numN
+        return dp[n]
+
+    ### Time: 2 + 3 + ... + n ≈ (1+n)*n/2 -> O(n^2) ###
+    ### Space: dp - O(n) ###
+                
+    @staticmethod
+    def test():
+        q96 = Q96()
+        print(1 == q96.numTrees(1))
+        print(2 == q96.numTrees(2))
+        print(5 == q96.numTrees(3))
+        print(14 == q96.numTrees(4))
+
+# Q96.test()
+        
+
+
+# CTCI 4.5
+class Q98: # MEDIUM | def isValidBST(self, root: TreeNode) -> bool:
+    # https://leetcode.com/problems/validate-binary-search-tree/
+    # Given the root of a binary tree, determine if it is a valid binary search tree (BST).
+    # A valid BST is defined as follows:
+        # The left subtree of a node contains only nodes with keys less than the node's key.
+        # The right subtree of a node contains only nodes with keys greater than the node's key.
+        # Both the left and right subtrees must also be binary search trees.
+
+ 
+    
+    def isValidBST(self, root):
+        return self.isValidBST_rec(root, None, None)  # None so no min for left subtree or max for right subtree
+    
+    def isValidBST_rec(self, root, min, max):
+        if (min is not None and root.val <= min) or (max is not None and root.val >= max):
+            return False
+        left, right = True, True
+        # saves function calls
+        if root.left: left = self.isValidBST_rec(root.left, min, root.val)
+        if root.right: right = self.isValidBST_rec(root.right, root.val, max)
+        return (left and right)
+        
+    ### Time: number of calls = number of nodes O(n)  * O(1) per call -> O(n) ###
+    
+    @staticmethod
+    def test():
+        q98 = Q98()
+        print(True == q98.isValidBST(TreeNode()))
+        n1 = TreeNode(1)
+        n2 = TreeNode(2)
+        n3 = TreeNode(3)
+        n4 = TreeNode(4)
+        n5 = TreeNode(5)
+        n4.left = n2
+        n2.left = n1
+        n2.right = n3
+        n4.right = n5
+        print(True == q98.isValidBST(n4))
+        n6 = TreeNode(6)
+        n3.right=n6
+        print(False == q98.isValidBST(n4))
+
+# Q98.test()
+
+
+
+class Q101: # EASY | def isSymmetric(self, root: TreeNode) -> bool:
+    # https://leetcode.com/problems/symmetric-tree/
+    # Given the root of a binary tree, check whether it is a mirror of itself
+    # (i.e., symmetric around its center).
+
+    ## going down both branches simultaneously, comparing the two
+    def isSymmetric(self, root):
+        if root.left and root.right:
+            return self.isSymmetric_rec(root.left, root.right)
+        elif root.left or root.right:
+            return False
+        else: # one node
+            return True
+    def isSymmetric_rec(self, node1, node2): # only called for not None
+        if node1.val != node2.val:
+            return False
+        outter, inner = True, True # both leaves -> True
+        if node1.left or node2.right:
+            if node1.left and node2.right:
+                outter = self.isSymmetric_rec(node1.left, node2.right)
+            else:
+                return False # structurally wrong
+        if node1.right or node2.left:
+            if node1.right and node2.left:
+                inner = self.isSymmetric_rec(node1.right, node2.left)
+            else:
+                return False # structurally wrong
+        return outter and inner
+        
+    ### Time: each node traversed once -> O(number of nodes) ###
+    ### Space: call stack: tree depth -> O(log2n) ###
+        
+    @staticmethod
+    def test():
+        q101=Q101()
+        print("Q101")
+        print(True == q101.isSymmetric(TreeNode()))
+        n1 = TreeNode(1)
+        n2 = TreeNode(2)
+        n22 = TreeNode(2)
+        n3 = TreeNode(3)
+        n32 = TreeNode(3)
+        n4 = TreeNode(4)
+        n42 = TreeNode(4)
+        n1.left = n2
+        n1.right = n22
+        n2.left = n3
+        n2.right = n4
+        n22.left = n42
+        n22.right = n32
+        print(True == q101.isSymmetric(n1))
+        n4.right = TreeNode(-100)
+        print(False == q101.isSymmetric(n1))
+        n4.right = None
+        n22.left = n32
+        n22.right = n42
+        print(False == q101.isSymmetric(n1))
+
+# Q101.test()
+
+
+
+# Definition for a binary tree node.
+class Q102: # MEDIUM | def levelOrder(self, root: TreeNode) -> List[List[int]]:
+    # https://leetcode.com/problems/binary-tree-level-order-traversal/
+    # Given the root of a binary tree, return the level order traversal of
+    # its nodes' values. (i.e., from left to right, level by level).
+
+    ## BFS: queue (FIFO) of [[level1 nodes], [level2 nodes]]
+    def levelOrder(self, root):
+        if root is None:
+            return []
+        levelQueue = [root] # storing one level at a time
+        out = []
+        while levelQueue:
+            newQueue, levelout = [], []
+            for node in levelQueue: # iterating: first in first out
+                # do not check unvisited here because binary tree doesn't have loops 
+                levelout.append(node.val)
+                if node.left: newQueue.append(node.left)
+                if node.right: newQueue.append(node.right)
+            levelQueue = newQueue
+            out.append(levelout)
+        return out
+    
+    ### Time: visit each node once -> O(num_nodes) ###
+    ### Space: out/levelout=O(num_nodes) + newQueue/levelQueue=2*O(one level nodes)=2*O(num_nodes) -> O(num_nodes) ###
+
+    @staticmethod
+    def test():
+        print("Q102 test():")
+        q102 = Q102()
+        print([] == q102.levelOrder(None))
+        print([[-100]] == q102.levelOrder(TreeNode(-100)))
+        n1 = TreeNode(1)
+        n2 = TreeNode(2)
+        n3 = TreeNode(3)
+        n4 = TreeNode(4)
+        n5 = TreeNode(5)
+        n4.left = n2
+        n2.left = n1
+        n2.right = n3
+        n4.right = n5
+        print([[4],[2,5],[1,3]] == q102.levelOrder(n4))
+        n6 = TreeNode(6)
+        n3.right=n6
+        print([[4],[2,5],[1,3], [6]] == q102.levelOrder(n4))
+
+# Q102.test()
+
+
+
+# REVIEW: common question idea, did not think of optimal solution independently, simple optimal
+class Q128: # MEDIUM | def longestConsecutive(self, nums: List[int]) -> int:
+    # https://leetcode.com/problems/longest-consecutive-sequence/
+    # Given an unsorted array of integers nums, return the length of the 
+    # longest consecutive elements sequence.
+    # You must write an algorithm that runs in O(n) time.
+
+    ## Iterate once for each sequence contained in nums: traverse nums only if num is start of a seq
+    ## To check if num is start: only need to check if num-1 is in nums
+    def longestConsecutive(self, nums):
+        if len(nums) == 0:
+            return 0
+        maxLen = 0
+        num_set = set(nums) # also removes duplicates
+        for num in num_set:
+            if num-1 not in num_set: # start of a sequence
+                seqLen, curNum = 1, num+1
+                while curNum in num_set:
+                    seqLen+=1
+                    curNum+=1
+                maxLen=max(maxLen, seqLen)
+        return maxLen
+    ### Time: traverse all seqs contained in nums once and each ele only in 1 seq -> O(n) ###
+    ### Space: num_set -> O(n) ###
+
+    @staticmethod
+    def test():
+        print("Q128")
+        q128 = Q128()
+        print("1", 0==q128.longestConsecutive([]))
+        print("2", 4==q128.longestConsecutive([100,4,200,1,3,2]))
+        print("3", 4==q128.longestConsecutive([100,4,101,1,3,2]))
+        print("4", 4==q128.longestConsecutive([100,3,200,2,1,300,4]))
+        print("5", 4==q128.longestConsecutive([100,-3,200,-2,-1,300,-4]))
+        print("6", 9==q128.longestConsecutive([0,3,7,2,5,8,4,6,0,1]))
+        print("7", 3==q128.longestConsecutive([3,-100,1,-200,2,-200,1]))
+
+# Q128.test()
+

@@ -95,7 +95,7 @@ def dfs_binary_tree(root):
         return
     else:
         print(root.nodeVal, end=" ")
-        dfs_binary_tree(root.left)
+        dfs_binary_tree(root.left) # until hit bottom
         dfs_binary_tree(root.right)
 
     # n1 = BinaryNode(1)
@@ -120,6 +120,7 @@ def bfs(graph, start):
         s = queue.pop(0) # pop first node from queue (only diff from dfs_non_recursive)
         if s not in explored:
             explored.append(s) # add node to list of visited nodes
+        # NOTE: should add else here? if visited, then continue to next loop
         if s in graph: # not leaf node, has children/neighbor
             for neighbor in graph[s]:
                 queue.append(neighbor)

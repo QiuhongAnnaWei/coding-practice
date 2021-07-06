@@ -71,7 +71,7 @@ class Solution:
                     top = maxBRSqrLen[rowIdx-1][colIdx]
                     left = maxBRSqrLen[rowIdx][colIdx-1]
                     ### NOTE: core relationship of the dp
-                    maxBRSqrLen[rowIdx][colIdx] = min(topLeft, top, left) + 1
+                    maxBRSqrLen[rowIdx][colIdx] = min(topLeft, top, left) + 1 # NOTE: needs tl, t, l to all meet condition for a square (different for rectangle)
         maxPerRow = [max(row) for row in maxBRSqrLen]
         return max(maxPerRow) ** 2
                     

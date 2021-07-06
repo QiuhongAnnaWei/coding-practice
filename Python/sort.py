@@ -84,23 +84,23 @@ def merge(left_list, right_list): # O (len(left_list) + len(right_list))
     """merge 2 sorted list:
     compare the smallest element of each list and add smaller of the two to final sorted_list"""
     sorted_list = []
-    left_list_index = 0
-    right_list_index = 0
+    l = 0
+    r = 0
     while len(sorted_list) < (len(left_list) + len(right_list)):
-        if left_list_index < len(left_list) and right_list_index < len(right_list):
+        if l < len(left_list) and r < len(right_list):
             # Add smaller of the two min (front of list) to sorted_list
-            if left_list[left_list_index] <= right_list[right_list_index]:
-                sorted_list.append(left_list[left_list_index])
-                left_list_index += 1
+            if left_list[l] <= right_list[r]:
+                sorted_list.append(left_list[l])
+                l += 1
             else:
-                sorted_list.append(right_list[right_list_index])
-                right_list_index += 1
+                sorted_list.append(right_list[r])
+                r += 1
         # Reached end of the of the left list
-        elif left_list_index == len(left_list):
-            sorted_list.extend(right_list[right_list_index:])
+        elif l == len(left_list):
+            sorted_list.extend(right_list[r:])
         # Reached the end of the of the right list
-        elif right_list_index == len(right_list):
-            sorted_list.extend(left_list[left_list_index:])
+        elif r == len(right_list):
+            sorted_list.extend(left_list[l:])
     return sorted_list
 
 def merge_sort(nums):

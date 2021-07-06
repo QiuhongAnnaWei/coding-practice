@@ -1,5 +1,7 @@
-### Singly Linked List
+#################################################################
+
 class SLLNode:
+    '''Singly Linked List'''
     def __init__(self, val=None):
         self.val = val
         self.nextNode = None # initialize as null
@@ -71,32 +73,35 @@ class SLinkedList:
                 headNode = headNode.nextNode
             prev.nextNode = headNode.nextNode
 
-# list1 = SLinkedList()
-# list1.headNode = SLLNode("Mon")
-# e2 = SLLNode("Wed")
-# e3 = SLLNode("Thu")
-# list1.headNode.nextNode = e2 # Link first SLLNode to second node
-# e2.nextNode = e3 # Link second SLLNode to third node
-# # list1.listPrint() # => Mon Wed Thu
+def sll():
+    list1 = SLinkedList()
+    list1.headNode = SLLNode("Mon")
+    e2 = SLLNode("Wed")
+    e3 = SLLNode("Thu")
+    list1.headNode.nextNode = e2 # Link first SLLNode to second node
+    e2.nextNode = e3 # Link second SLLNode to third node
+    # list1.listPrint() # => Mon Wed Thu
 
-# list1.insertAtBeginning("Sun")
-# # list1.listPrint() # => Sun Mon Wed Thu
+    list1.insertAtBeginning("Sun")
+    # list1.listPrint() # => Sun Mon Wed Thu
 
-# list1.insertAtEnd("Fri")
-# # list1.listPrint() # => Sun Mon Wed Thu Fri
+    list1.insertAtEnd("Fri")
+    # list1.listPrint() # => Sun Mon Wed Thu Fri
 
-# list1.insertInMiddle(list1.headNode.nextNode,"Tue")
-# # list1.listPrint() # => Sun Mon Tue Wed Thu Fri
+    list1.insertInMiddle(list1.headNode.nextNode,"Tue")
+    # list1.listPrint() # => Sun Mon Tue Wed Thu Fri
 
-# list1.removeNode("Wed")
-# # list1.listPrint() # => Sun Mon Tue Thu Fri
+    list1.removeNode("Wed")
+    # list1.listPrint() # => Sun Mon Tue Thu Fri
 
+
+#################################################################
 
 class DLLNode:
     def __init__(self, next=None, prev=None, data=None):
+        self.data = data
         self.next = next # reference to next node in DLL
         self.prev = prev # reference to previous node in DLL
-        self.data = data
 
 class DLinkedList:
     def __init__(self):
@@ -161,36 +166,39 @@ class DLinkedList:
             print(last.data, end=" ")
             last = last.prev
  
-# dll = DLinkedList()
-# dll.insertAtBeginning(7)
-# dll.insertAtBeginning(1)
-# dll.insertAtBeginning(4)
-# # Insert 8, before 1. So linked list becomes 4.8.1.7.NULL
-# head = dll.insertBefore(dll.headNode.next, 8)
-# print("Created DLL is: ")
-# dll.printList(head) # 4817 7184
+def dll():
+    dll = DLinkedList()
+    dll.insertAtBeginning(7)
+    dll.insertAtBeginning(1)
+    dll.insertAtBeginning(4)
+    # Insert 8, before 1. So linked list becomes 4.8.1.7.NULL
+    head = dll.insertBefore(dll.headNode.next, 8)
+    print("Created DLL is: ")
+    dll.printList(head) # 4817 7184
 
 
-# dll = DLinkedList()
-# # 10 <-> 8 <-> 4 <-> 2
-# dll.insertAtBeginning(2)
-# dll.insertAtBeginning(4)
-# dll.insertAtBeginning(8)
-# dll.insertAtBeginning(10)
-# print("\n---Original Linked List:")
-# dll.printList(dll.headNode)
-# dll.deleteNode(dll.headNode) # 8 <-> 4 <-> 2
-# dll.deleteNode(dll.headNode.next) # 8 <-> 2
-# dll.deleteNode(dll.headNode.next) # NULL<-8->NULL
-# print("\n---Modified Linked List:")
-# dll.printList(dll.headNode)
+    dll = DLinkedList()
+    # 10 <-> 8 <-> 4 <-> 2
+    dll.insertAtBeginning(2)
+    dll.insertAtBeginning(4)
+    dll.insertAtBeginning(8)
+    dll.insertAtBeginning(10)
+    print("\n---Original Linked List:")
+    dll.printList(dll.headNode)
+    dll.deleteNode(dll.headNode) # 8 <-> 4 <-> 2
+    dll.deleteNode(dll.headNode.next) # 8 <-> 2
+    dll.deleteNode(dll.headNode.next) # NULL<-8->NULL
+    print("\n---Modified Linked List:")
+    dll.printList(dll.headNode)
 
 
 #################################################################
 
-### Stack (first in last out) that keeps track of min (CTCI 3.2)
-# keeps track through a minStack that is sometimes updated in push() and pop()
+
 class Stack:
+    '''Stack (FILO) that keeps track of min (CTCI 3.2)
+    keeps track of min through a minStack that is sometimes updated in push() and pop()
+    '''
     def __init__(self):
         self.stack = []
         self.minStack = [] # addition for Min
@@ -235,10 +243,12 @@ class Stack:
 
 #################################################################
 
-### Queue implemented with 2 Stacks(FILO) (CTCI 3.5)
-# frontStack (reversed, for dequeue) + backStack (normal, for enqueue) = queue
-# dump all from backStack into frontStack (reversing order) when frontStack is empty
+
 class Queue():
+    ''' Queue (FIFO) implemented with 2 Stacks(FILO) (CTCI 3.5)
+    frontStack (reversed, for dequeue) + backStack (normal, for enqueue) = queue
+    dump all from backStack into frontStack (reversing order) when frontStack is empty
+    ''' 
     # dequeue <- + 1, + 2, + 3 <- enqueue
     def __init__(self):
         self.frontStack = Stack() # +3, +2, +1
@@ -274,24 +284,27 @@ class Queue():
     def getSize(self):
         return self.frontStack.getSize() + self.backStack.getSize()
 
-# queue = Queue()
-# queue.enqueue(10)
-# queue.enqueue(20)
-# print("2 expected:", queue.getSize())
-# queue.enqueue(30)
-# print("10 expected:", queue.peek())
-# print("3 expected:", queue.getSize())
-# print("False expected:", queue.isEmpty())
-# print("10 expected:", queue.dequeue())
-# print("20 expected:", queue.dequeue())
-# print("1 expected:", queue.getSize())
-# queue.enqueue(100)
-# print("30 expected:", queue.dequeue())
-# print("100 expected:", queue.dequeue())
+def queue():
+    queue = Queue()
+    queue.enqueue(10)
+    queue.enqueue(20)
+    print("2 expected:", queue.getSize())
+    queue.enqueue(30)
+    print("10 expected:", queue.peek())
+    print("3 expected:", queue.getSize())
+    print("False expected:", queue.isEmpty())
+    print("10 expected:", queue.dequeue())
+    print("20 expected:", queue.dequeue())
+    print("1 expected:", queue.getSize())
+    queue.enqueue(100)
+    print("30 expected:", queue.dequeue())
+    print("100 expected:", queue.dequeue())
+
 
 #################################################################
 
-class BinHeap:
+
+class BinHeap: # min heap
     def __init__(self):
         self.heapList = [0] # 0 there so i // 2 -> parent's index
         self.currentSize = 0 # not equal to len(heapList)
@@ -352,28 +365,32 @@ class BinHeap:
             self.siftDown(i)
             i -= 1
 
-# bh = BinHeap()
-# bh.buildHeap([9,5,6,2,3])
-# print(bh.removeMin())
-# print(bh.removeMin())
-# print(bh.removeMin())
-# print(bh.removeMin())
-# print(bh.removeMin())
+def binHeap():
+    bh = BinHeap()
+    bh.buildHeap([9,5,6,2,3])
+    print(bh.removeMin())
+    print(bh.removeMin())
+    print(bh.removeMin())
+    print(bh.removeMin())
+    print(bh.removeMin())
 
-# bh.insert(1)
-# bh.insert(4)
-# bh.insert(5)
-# bh.insert(2)
-# bh.insert(3)
-# print(bh.removeMin())
-# print(bh.removeMin())
-# print(bh.removeMin())
-# print(bh.removeMin())
-# print(bh.removeMin())
+    bh.insert(1)
+    bh.insert(4)
+    bh.insert(5)
+    bh.insert(2)
+    bh.insert(3)
+    print(bh.removeMin())
+    print(bh.removeMin())
+    print(bh.removeMin())
+    print(bh.removeMin())
+    print(bh.removeMin())
 
 
-# enough for a binary tree
+#################################################################
+
+
 class BinaryNode:
+    '''enough for a binary tree'''
     def __init__(self, val=None, left=None, right=None):
         self.nodeVal = val
         self.left = left
@@ -394,3 +411,65 @@ class BinaryNode:
                 self.right.insert(value)
         else:
             pass
+    
+    def preOrderTrav(root):
+        '''DFS-Pre Order Traversal 前序遍历: node -> left subtree -> right subtree (most familiar)'''
+        def pre_rec(root, trav):
+            if root:
+                trav.append(root.nodeVal)
+                if root.left: pre_rec(root.left, trav) # if saves fun calls: base case = leaf node instead of None
+                if root.right: pre_rec(root.right, trav)
+        trav = []
+        pre_rec(root, trav)
+        return trav
+
+    def inOrderTrav(root):
+        '''DFS-In Order Traversal 中序遍历:  left subtree -> node -> right subtree
+        recursive implementation'''
+        def in_rec(root, trav):
+            if root:
+                if root.left: in_rec(root.left, trav)
+                trav.append(root.nodeVal)
+                if root.right: in_rec(root.right, trav)
+        trav = []
+        in_rec(root, trav)
+        return trav
+        ### time: traverse each node * O(1) per node -> O(n) ###
+        ### space: tree height -> worst O(n)/average O(log n) ###
+    def inorderTraversal_iter(root):
+        ### REVIEW
+        '''Iterative implementation using stack
+        keeps appending left until None, then node, then right; resume with stack when finish right leaf
+        '''
+        stack, trav = [], []
+        currN = root
+        while currN or stack:
+            if currN:
+                stack.append(currN)
+                currN = currN.left
+            else: # stack
+                node = (stack.pop())
+                trav.append(node.nodeVal)
+                currN = node.right
+        return trav
+
+    def postOrderTrav(root):
+        '''DFS-Post Order Traversal 后序遍历: left subtree -> right subtree -> node'''
+        def post_rec(root, trav):
+            if root:
+                if root.left: post_rec(root.left, trav)
+                if root.right: post_rec(root.right, trav)
+                trav.append(root.nodeVal)
+        trav = []
+        post_rec(root, trav)
+        return trav
+
+    def bfs():
+        return
+
+def binaryTree():
+    print(BinaryNode.inorderTraversal_iter(None))
+    tree1 = BinaryNode(2, BinaryNode(1), BinaryNode(3))
+    print(BinaryNode.inorderTraversal_iter(tree1))
+
+binaryTree()
