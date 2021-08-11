@@ -81,7 +81,7 @@ def heap_sort(nums): # using heapify - 1. O(n)
 
 
 def merge(left_list, right_list): # O (len(left_list) + len(right_list))
-    """merge 2 sorted list:
+    """Merge 2 sorted list:
     compare the smallest element of each list and add smaller of the two to final sorted_list"""
     sorted_list = []
     l = 0
@@ -95,11 +95,9 @@ def merge(left_list, right_list): # O (len(left_list) + len(right_list))
             else:
                 sorted_list.append(right_list[r])
                 r += 1
-        # Reached end of the of the left list
-        elif l == len(left_list):
+        elif l == len(left_list): # Reached end of left list
             sorted_list.extend(right_list[r:])
-        # Reached the end of the of the right list
-        elif r == len(right_list):
+        elif r == len(right_list): # Reached the end of right list
             sorted_list.extend(left_list[l:])
     return sorted_list
 

@@ -33,6 +33,26 @@ class TreeNode:
         self.val = val
         self.left = left
         self.right = right
+    
+    def preOrder(self):
+        def preOrderTrav(root, trav):
+            if root:
+                trav.append(root.val)
+                preOrderTrav(root.left, trav)
+                preOrderTrav(root.right, trav)
+            else:
+                trav.append(None)
+        travL = []
+        preOrderTrav(self, travL)
+        return travL
+    
+    def __str__(self):
+        """ Overriden for print. Uses pre-order traversal of binary tree"""
+        if not self:
+            return "[]"
+        preOrderL = self.preOrder()
+        preOrderL = [str(e) for e in preOrderL if e] # removes the None
+        return ", ".join(preOrderL)
 
 
 class Q1: # EASY | def twoSum(self, nums: List[int], target: int) -> List[int]:
@@ -2302,7 +2322,7 @@ class Q84: # HARD | def largestRectangleArea(self, heights: List[int]) -> int:
 
 
 
-# REVIEW: left/right's representation + how dp is constructed
+### REVIEW: left/right's representation + how dp is constructed
 class Q85: # HARD | def maximalRectangle(self, matrix: List[List[str]]) -> int:
     # https://leetcode.com/problems/maximal-rectangle/
     # Given a rows x cols binary matrix filled with 0's and 1's, find the largest rectangle
@@ -2520,7 +2540,6 @@ class Q101: # EASY | def isSymmetric(self, root: TreeNode) -> bool:
 
 
 
-# Definition for a binary tree node.
 class Q102: # MEDIUM | def levelOrder(self, root: TreeNode) -> List[List[int]]:
     # https://leetcode.com/problems/binary-tree-level-order-traversal/
     # Given the root of a binary tree, return the level order traversal of
@@ -2570,7 +2589,214 @@ class Q102: # MEDIUM | def levelOrder(self, root: TreeNode) -> List[List[int]]:
 
 
 
-# REVIEW: common question idea, did not think of optimal solution independently, simple optimal
+class Q104: # EASY | maxDepth(self, root: TreeNode)
+    # https://leetcode.com/problems/maximum-depth-of-binary-tree/
+    # Given the root of a binary tree, return its maximum depth. 
+    # A binary tree's maximum depth is the number of nodes along the longest
+    # path from the root node down to the farthest leaf node.
+
+    # recursive; update maxD when reached leaf
+    def maxDepth(self, root):
+        if root is None:
+            return 0
+        return self.maxDepth_rec(root, 1, 1)
+        
+    def maxDepth_rec(self, node, depthSoFar, maxSoFar):
+        if node.left is None and node.right is None:
+            maxSoFar = max(maxSoFar, depthSoFar)
+        else:
+            if node.left:
+                maxSoFar=max(maxSoFar, self.maxDepth_rec(node.left, depthSoFar+1, maxSoFar))
+            if node.right:
+                maxSoFar=max(maxSoFar, self.maxDepth_rec(node.right, depthSoFar+1, maxSoFar))
+        return maxSoFar
+
+    @staticmethod
+    def test():
+        q104 = Q104()
+        print("------ Q104 ------")
+        print("1", 0==q104.maxDepth(None))
+        n1 = TreeNode(1)
+        print("2", 1==q104.maxDepth(n1))
+        n2 = TreeNode(100)
+        n1.left = n2
+        print("3", 2==q104.maxDepth(n1))
+        n1.left = None
+        n1.right = n2
+        print("4", 2==q104.maxDepth(n1))
+        n3 = TreeNode(-100)
+        n4 = TreeNode(4)
+        n5 = TreeNode(5)
+        n1.left = n2
+        n1.right = n3
+        n3.left = n4
+        n3.right = n5
+        print("5", 3==q104.maxDepth(n1))
+        n6 = TreeNode(6)
+        n4.right = n6
+        print("6", 4==q104.maxDepth(n1))
+
+# Q104.test()
+
+
+
+### REVIEW: optimization + inner method
+class Q105: # MEDIUM | def buildTree(self, preorder: List[int], inorder: List[int]) -> TreeNode:
+    # https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/
+    # Given two integer arrays preorder and inorder where preorder is the preorder traversal
+    # of a binary tree and inorder is the inorder traversal of the same tree, construct and
+    # return the binary tree.
+
+    ## Recursive: preorder helps locate topN, dividing inorder list into halves
+    ## Optimization: instead of doing inorder.index(nodeVal) for each rec, do a linear runthrough once and store it
+    def buildTree(self, preorder, inorder):
+        if len(preorder) == 1:
+            return TreeNode(val=preorder[0])
+
+        valueToInIdx = {} # NOTE: can directly access in inner method
+        for i in range(len(inorder)):
+            valueToInIdx[inorder[i]] = i
+            
+        def buildTree_rec(p, i, pI, isI, ieI):
+            '''pI: current top node's index in preorder
+            isI, ieI: inclusive indices marking the relevant slices of preorder and inorder'''
+            if isI > ieI:
+                return None
+            topNVal = p[pI]
+            topN = TreeNode(val=topNVal)
+            # cutOffIdx = i.index(topNVal, isI, ieI+1) # index() end noninclusive; returns idx rel to beginning of list; possible because values are unique
+            cutOffIdx = valueToInIdx[topNVal]
+            leftLen = cutOffIdx-isI
+            if leftLen>0: topN.left = buildTree_rec(p, i, pI+1, isI, cutOffIdx-1)
+            rightLen = ieI-cutOffIdx
+            if rightLen>0: topN.right = buildTree_rec(p, i, pI+leftLen+1, cutOffIdx+1, ieI)
+            return topN
+            
+        return buildTree_rec(preorder, inorder, 0, 0, len(inorder)-1)
+    
+    ### Time: one recursive call for each node * each call O(1) -> O(lLen) ###
+    ### Space:  stack + heap = O(lLen) + O(lLen) -> O(lLen) ###
+        ### stack: rec tree depth=tree depth≤ O(lLen) -> O(lLen) (balanced tree = O(log_2 lLen))
+        ### heap: O(1) + valueToInIdx=O(lLen) -> O(lLen)
+        
+    @staticmethod
+    def test():
+        q105 = Q105()
+        print("----------\nQ105:")
+        print([-1,None,None] == q105.buildTree([-1],[-1]).preOrder())
+        print([3,9,None,5,None,None,20,None,None]==q105.buildTree([3,9,5,20],[9,5,3,20]).preOrder())
+        print([3,9,None,None,20,15,None,None,7,None,None]==q105.buildTree([3,9,20,15,7],[9,3,15,20,7]).preOrder())
+
+# Q105.test()
+
+
+
+## REVIEW: found modifying in place difficult (and TODO: did not look at others' solutions)
+class Q114: # MEDIUM | def flatten(self, root: TreeNode) -> None:
+    # https://leetcode.com/problems/flatten-binary-tree-to-linked-list/
+    # Given the root of a binary tree, flatten the tree into a "linked list":
+    # 1. The "linked list" should use the same TreeNode class where the right child
+    # pointer points to the next node in the list and the left child pointer is always null.
+    # 2. The "linked list" should be in the same order as a pre-order traversal of
+    # the binary tree.
+
+    ## Complexity in modifying root in place
+    ## root.val already in place -> if left, modifying root ref -> if right
+    def flatten(self, root: TreeNode) -> None:
+        """
+        Do not return anything, modify root in-place instead.
+        """
+        self.flatten_rec(root)
+    
+    def flatten_rec(self, root):
+        if root:
+            right = root.right
+            if root.left:
+                root.right = root.left
+                root.left = None
+                root = root.right
+                root = self.flatten_rec(root)
+            if right:
+                root.right = right # root modified in previous if
+                root.left = None # may be unnecessary
+                root = root.right
+                root = self.flatten_rec(root)
+            return root # for recursive purposes only
+    ### Time: one recursive call for each node * O(1) per call -> O(num_nodes) ###
+    ### Space: heap=nth + stack=rec tree depth=tree depth -> O(num_nodes) ###
+    
+    @staticmethod
+    def test():
+        print("Q114")
+        q114 = Q114()
+        n1 = TreeNode(1)
+        q114.flatten(n1)
+        print("1", [1,None,None]==n1.preOrder())
+
+        n1 = TreeNode(1)
+        n2 = TreeNode(2)
+        n3 = TreeNode(3)
+        n4 = TreeNode(4)
+        n1.left = n2
+        n2.right = n3
+        n1.right = n4
+        q114.flatten(n1)
+        print("2", [1,None,2,None,3,None,4,None,None]==n1.preOrder())
+
+        n1 = TreeNode(1)
+        n2 = TreeNode(2)
+        n3 = TreeNode(3)
+        n4 = TreeNode(4)
+        n5 = TreeNode(5)
+        n6 = TreeNode(6)
+        n1.left = n2
+        n2.left=n3
+        n2.right=n4
+        n1.right = n5
+        n5.right=n6
+        q114.flatten(n1)
+        print("3", [1,None,2,None,3,None,4,None,5,None,6,None,None]==n1.preOrder())
+
+# Q114.test()
+
+
+
+class Q121: # EASY | maxProfit(self, prices: List[int]) -> int:
+    # https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
+    # You are given an array prices where prices[i] is the price of a given stock on the ith day. 
+    # You want to maximize your profit by choosing a single day to buy one stock and choosing a different
+    # day in the future to sell that stock.
+    # Return the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.
+
+    ## single traversal, at each price, either update min or check profit
+    def maxProfit(self, prices):
+        minPrice = prices[0]
+        maxProfit = 0
+        for i in range(1, len(prices)):
+            if prices[i] < minPrice:
+                minPrice = prices[i]
+            else:
+                maxProfit = max(maxProfit, prices[i]-minPrice)
+        return maxProfit
+    ### Time: sinlge traversal, at each O(1) -> O(n)
+    ### Memory: minPrice, mmaxProfit, i -> O(1)
+
+    @staticmethod
+    def test():
+        print("------ Q121 ------")
+        q121 = Q121()
+        print("1", 0==q121.maxProfit([3]))
+        print("2", 0==q121.maxProfit([0]))
+        print("3", 4==q121.maxProfit([1,3,5]))
+        print("4", 4==q121.maxProfit([10,2,5,6,1,4,0]))
+        print("5", 5==q121.maxProfit([7,1,5,3,6,4]))
+        print("6", 0==q121.maxProfit([7,6,4,3,1]))
+
+# Q121.test()
+
+
+
+### REVIEW: common question idea, did not think of optimal solution independently, simple optimal
 class Q128: # MEDIUM | def longestConsecutive(self, nums: List[int]) -> int:
     # https://leetcode.com/problems/longest-consecutive-sequence/
     # Given an unsorted array of integers nums, return the length of the 
@@ -2609,3 +2835,107 @@ class Q128: # MEDIUM | def longestConsecutive(self, nums: List[int]) -> int:
 
 # Q128.test()
 
+
+
+class Q138: # MEDIUM | def copyRandomList(self, head: 'Node') -> 'Node':
+    # https://leetcode.com/problems/copy-list-with-random-pointer/
+    # A linked list of length n is given such that each node contains an additional random pointer, which could
+    # point to any node in the list, or null.
+
+    # Construct a deep copy of the list. The deep copy should consist of exactly n brand new nodes, where each
+    # new node has its value set to the value of its corresponding original node. Both the next and random pointer
+    # of the new nodes should point to new nodes in the copied list such that the pointers in the original list and
+    # copied list represent the same list state. None of the pointers in the new list should point to nodes in the
+    # original list.
+
+    # For example, if there are two nodes X and Y in the original list, where X.random --> Y, then for the
+    # corresponding two nodes x and y in the copied list, x.random --> y.
+
+    # Return the head of the copied linked list.
+    
+    # Your code will only be given the head of the original linked list.
+
+    
+    class Node:
+        def __init__(self, x: int, next = None, random = None):
+            self.val = int(x)
+            self.next = next
+            self.random = random
+
+
+    ## Can use Node as dictionary key (hashable): saving old-new correspondence in {old:new}
+    def copyRandomList(self, head):
+        if head is None:
+            return None
+        cur = head
+        old2new = {}
+        while cur: # build new nodes
+            old2new[cur] = Q138.Node(cur.val)
+            cur = cur.next
+        cur = head
+        while cur: # asisgn next and random
+            old2new[cur].next = old2new[cur.next] if cur.next else None
+            old2new[cur].random = old2new[cur.random] if cur.random else None
+            cur = cur.next
+        return old2new[head]
+    ### Time: 2 iterations with O(1) at each step=2*O(n*1) -> O(n) ###
+    ### Space: cur=O(1) + old2new=O(n) ###
+    
+    
+    ## Time optimized: same as below, except add a {val:[index]} to replace index()
+    def copyRandomList_time(self, head):
+        if head is None:
+            return None 
+        newHead = Q138.Node(head.val)
+        # 1st iteration
+        cur = head.next
+        ct = 1
+        curNew = newHead
+        old, new = [head], [newHead]
+        val2I = {head.val:[0]}
+        while cur is not None:
+            if cur.val in val2I:
+                val2I[cur.val].append(ct)
+            else:
+                val2I[cur.val] = [ct]
+            ct += 1
+            old.append(cur)
+            curNew.next = Q138.Node(cur.val)
+            new.append(curNew.next)
+            cur = cur.next
+            curNew = curNew.next
+        # 2nd iteration
+        for i in range(len(old)):
+            if old[i].random is None:
+                new[i].random = None
+            else:
+                for possibleI in val2I[old[i].random.val]:
+                    if old[i].random is old[possibleI]:
+                        new[i].random = new[possibleI]
+                        break
+        return newHead
+    ### Time: 1st iteration=O(n*1) + 2nd iteration: for one node iterate through val2I[old[i].random.val] = O(n * n worst case) -> bounded by O(n^2) ###
+    ### Space: old, new=2O(n) + val2I=about O(n) + others=O(1) -> O(n) ###
+    
+    
+    ## Space optimized: Construct the next chain, save 2 node lists; iterate through next filling random, use index() to find corresopnding new node
+    def copyRandomList_space(self, head):
+        if head is None:
+            return None 
+        newHead = Q138.Node(head.val)
+        # 1st iteration
+        cur = head.next
+        curNew = newHead
+        old, new = [head], [newHead]
+        while cur is not None:
+            old.append(cur)
+            curNew.next = Q138.Node(cur.val)
+            new.append(curNew.next)
+            cur = cur.next
+            curNew = curNew.next
+        # 2nd iteration
+        for i in range(len(old)):
+            new[i].random = None if old[i].random is None else new[old.index(old[i].random)]
+        return newHead      
+    ### Time: 1st iteration = O(n*1) + 2nd iteration: for one node index() = O(n*n) -> O(n^2) ###
+    ### Space: old, new=2O(n) + others=O(1) -> O(n) ###
