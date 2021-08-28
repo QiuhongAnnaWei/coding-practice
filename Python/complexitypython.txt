@@ -65,8 +65,8 @@ Operation     | Example      | Class         | Notes
 Length        | len(s)       | O(1)	     |
 Add           | s.add(5)     | O(1)	     |
 Containment   | x in/not in s| O(1)	     | compare to list/tuple - O(N)
-Remove        | s.remove(..) | O(1)	     | compare to list/tuple - O(N)
-Discard       | s.discard(..)| O(1)	     | 
+Remove        | s.remove(..) | O(1)	     | compare to list/tuple - O(N) - raises KeyError if does not exist
+Discard       | s.discard(..)| O(1)	     | does not raise KeyError if does not exist
 Pop           | s.pop()      | O(1)	     | popped value "randomly" selected
 Clear         | s.clear()    | O(1)	     | similar to s = set()
 

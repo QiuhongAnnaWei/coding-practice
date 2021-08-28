@@ -28,7 +28,7 @@ class ListNode:
             curNode = curNode.next
         return ", ".join(s_list)
 
-class TreeNode:
+class TreeNode: # BinaryNode
     def __init__(self, val=0, left=None, right=None):
         self.val = val
         self.left = left
@@ -51,7 +51,7 @@ class TreeNode:
         if not self:
             return "[]"
         preOrderL = self.preOrder()
-        preOrderL = [str(e) for e in preOrderL if e] # removes the None
+        preOrderL = [str(e) for e in preOrderL if e is not None] # removes the None
         return ", ".join(preOrderL)
 
 
@@ -2691,6 +2691,63 @@ class Q105: # MEDIUM | def buildTree(self, preorder: List[int], inorder: List[in
 
 
 
+class Q108: # EASY | def sortedArrayToBST(self, nums: List[int]) -> Optional[TreeNode]:
+    # https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/
+    # Given an integer array nums where the elements are sorted in ascending order, convert it to a
+    # height-balanced binary search tree.
+    # A height-balanced binary tree is a binary tree in which the depth of the two subtrees of every
+    # node never differs by more than one.
+
+    ## Recursion: find midpoint and make it root, optimize slicing to indices
+    def sortedArrayToBST(self, nums):
+        if len(nums) == 0:
+            return None
+        if len(nums) == 1:
+            return TreeNode(nums[0]) 
+        return self.sortedArrayToBST_rec(nums, 0, len(nums))
+    def sortedArrayToBST_rec(self, nums, l, r):
+        '''l is inclusive, r is not inclusive'''
+        if l>= r:
+            return None
+        if l+1 == r:
+            return TreeNode(nums[l])
+        else: # l is at least 2 smaller than r
+            midpoint = (l+r)//2
+            headNode = TreeNode(nums[midpoint])
+            headNode.left = self.sortedArrayToBST_rec(nums, l, midpoint)
+            headNode.right = self.sortedArrayToBST_rec(nums, midpoint+1, r)
+            return headNode
+    ### Time: 2^(log2n)=n nodes * O(1) time/node = O(num_len) ###
+    ### Space: heap=O(1)+O(n) + call stack=height=O(log2n) -> O(n)+O(log2n) = O(num_len) ### 
+
+    
+    ## Recursion: find midpoint and make it root
+    def sortedArrayToBST_slice(self, nums):
+        if len(nums) == 0:
+            return None
+        if len(nums) == 1:
+            return TreeNode(nums[0])
+        midpoint = len(nums) // 2
+        headNode = TreeNode(nums[midpoint])
+        headNode.left = self.sortedArrayToBST(nums[:midpoint])
+        headNode.right = self.sortedArrayToBST(nums[midpoint+1:])
+        return headNode
+    ### Time: O(log2(num_len)) levels * slice=O(num_len) time/level -> O(nlog2n) ###
+    ### Space: heap=O(1)+O(num_len) + call stack=O(log2(num_len)) -> O(n) + O(log2n) = O(num_len) ### 
+
+    @staticmethod
+    def test():
+        print("Q108")
+        q108 = Q108()
+        print("1", [1, None, None]==q108.sortedArrayToBST([1]).preOrder())
+        print("2", [0, -3, -10, None, None, None, 9, 5, None, None, None]==q108.sortedArrayToBST([-10,-3,0,5,9]).preOrder())
+        print("3", [3, 1, None, None, None]==q108.sortedArrayToBST([1, 3]).preOrder())
+        print("4", [30, 2, 0, None, None, None, 400, None, None]==q108.sortedArrayToBST([0, 2, 30, 400]).preOrder())
+
+# Q108.test()
+        
+
+
 ## REVIEW: found modifying in place difficult (and TODO: did not look at others' solutions)
 class Q114: # MEDIUM | def flatten(self, root: TreeNode) -> None:
     # https://leetcode.com/problems/flatten-binary-tree-to-linked-list/
@@ -2837,6 +2894,39 @@ class Q128: # MEDIUM | def longestConsecutive(self, nums: List[int]) -> int:
 
 
 
+## Review: ^ operator (bitwise XOR), functools.reduce
+class Q136: # EASY | def singleNumber(self, nums: List[int]) -> int:
+    # https://leetcode.com/problems/single-number/
+    # Given a non-empty array of integers nums, every element appears twice except for one. Find that single one.
+    # You must implement a solution with a linear runtime complexity and use only constant extra space.
+
+    ## XOR is commutative & associative: {2,1,5,2,1} =>((2^2)^(1^1)^(5)) => (0^0^5) => 5
+    def singleNumber(self, nums):
+        import functools
+        return functools.reduce(lambda x, y: x^y, nums)
+    ### Time: iterate through nums applying lambda -> O(n) ###
+    ### Space: result of reduce() -> O(1) ###
+
+    @staticmethod
+    def test():
+        q136 = Q136()
+        print("---Q136---")
+        print(10==q136.singleNumber([10]))
+        print(300==q136.singleNumber([-10,-10,300]))
+        print(3==q136.singleNumber([10,10,-2,-2,3]))
+        print(3==q136.singleNumber([3,1,1,2,2]))
+
+        print(3==q136.singleNumber([3,1,2,1,2]))
+        print(3==q136.singleNumber([1,3,2,1,2]))
+        print(3==q136.singleNumber([1,2,3,1,2]))
+        print(3==q136.singleNumber([1,2,1,3,2]))
+        print(3==q136.singleNumber([1,2,1,2,3]))
+        print(3==q136.singleNumber([1,2,3,2,1]))
+
+Q136.test()
+
+
+
 class Q138: # MEDIUM | def copyRandomList(self, head: 'Node') -> 'Node':
     # https://leetcode.com/problems/copy-list-with-random-pointer/
     # A linked list of length n is given such that each node contains an additional random pointer, which could
@@ -2939,3 +3029,76 @@ class Q138: # MEDIUM | def copyRandomList(self, head: 'Node') -> 'Node':
         return newHead      
     ### Time: 1st iteration = O(n*1) + 2nd iteration: for one node index() = O(n*n) -> O(n^2) ###
     ### Space: old, new=2O(n) + others=O(1) -> O(n) ###
+
+
+
+## REVIEW: smart dp
+class Q139: # MEDIUM | def wordBreak(self, s: str, wordDict: List[str]) -> bool:
+    # https://leetcode.com/problems/word-break/
+    # Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a
+    # space-separated sequence of one or more dictionary words.
+    # Note that the same word in the dictionary may be reused multiple times in the segmentation.
+   
+    ## optimized? dp: replace inner loop through wordDict with for j in range(i) + dp.append instead
+    def wordBreak_odp(self, s: str, wordDict):
+        dp = [True]
+        for i in range(1, len(s)+1):
+            dp.append(False)
+            for j in range(i):
+                if (dp[j]) and (s[j:i] in wordDict): # O(i-j) + O(wd_len)
+                    dp[-1] = True
+                    break
+        return dp[-1] # dp[len(s)]=first len(s) char of s can be segmented
+    ### Time: roughly 1 + 2 + ... + s_len = (1+s_len)*s_len/2 -> O(s_len^2) ###
+    ### Space: dp -> O(s_len) ###
+    
+    ## dp[i] = whether s[:i]/first i char of s can be segmented, i++
+    def wordBreak_dp(self, s: str, wordDict):
+        dp = [False for _ in range(len(s)+1)]
+        dp[0] = True
+        for i in range(1, len(s)+1):
+            for w in wordDict:
+                if s[i-len(w):i] == w and dp[i-len(w)]:
+                    dp[i] = True ## NOTE: core of dp -> dp[i] = a word ends at (i-1)th index AND dp[i-len(w)]==True
+                    break # logic wise: equivalent to any()
+        return dp[-1] # dp[len(s)]=first len(s) char of s can be segmented
+    ### Time: O(s_len) + O(s_len * wd_len) -> O(s * wd) ###
+    ### Space: dp -> O(s_len) ###
+    
+    ## recursively see if remaining part of s can be segmented
+    def wordBreak_rec(self, s: str, wordDict):
+        return self.wordBreak_rechelper(s, 0, wordDict)
+    def wordBreak_rechelper(self, s, i, wordDict):
+        '''returns whether s[i:] can be segmented into words in wordDict'''
+        if i == len(s):
+            return True
+        for wdi in range(len(wordDict)):
+            word = wordDict[wdi]
+            if s[i:i+len(word)] == word:
+                if self.wordBreak_rechelper(s, i+len(word), wordDict):
+                    return True
+        return False # exhaust wordDict and did not find a match
+    ### Time: (branches=wd_len ^ depth=s_len) nodes O###
+    ### Space ###
+    
+    @staticmethod
+    def test():
+        q139 = Q139()
+        print("---q139---")
+        print("1", True==q139.wordBreak_odp("a", ["a"]))
+        print("2", False==q139.wordBreak_odp("a", ["bcd"]))
+        print("3", False==q139.wordBreak_odp("abc", ["a"]))
+        print("4", True==q139.wordBreak_odp("ab", ["b", "a"]))
+        print("5", True==q139.wordBreak_odp("azbaz", ["b", "az"]))
+        print("6", True==q139.wordBreak_odp("abcabc", ["abc"]))
+        print("7", True==q139.wordBreak_odp("abc", ["bc", "zzvhs", "b", "aa", "a"]))
+        print("8", True==q139.wordBreak_odp("abc", ["bc", "xyz", "abc", "e"]))
+        print("9", False==q139.wordBreak_odp("abc", ["b", "ab", "bc" "a"]))
+        print("10", True==q139.wordBreak_odp("abcd", ["a", "bc", "b" "cd"]))
+        print("11", False==q139.wordBreak_odp("catsandog", ["cats","dog","sand","and","cat"]))
+        print("12", True==q139.wordBreak_odp("aaaaaaaa", ["a"]))
+        print("13", True==q139.wordBreak_odp("aaaaaaaa", ["aaa", "a"]))
+        print("14", False==q139.wordBreak_odp("aaaaaaaa", ["aaa",]))
+        print("15", False==q139.wordBreak_odp("aaaaaaaab", ["a"]))
+
+# Q139.test()
