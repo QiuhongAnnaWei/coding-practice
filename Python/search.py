@@ -31,7 +31,7 @@ def binarySearch_iterative(arr, x):
     l = 0
     r = len(arr) - 1
     while l <= r:
-        mid = (l + r) // 2
+        mid = l + (l-r)//2 #  to prevent overflow; original: (l + r) // 2
         if arr[mid] == x:
             return mid
         elif arr[mid] > x: # left subarray

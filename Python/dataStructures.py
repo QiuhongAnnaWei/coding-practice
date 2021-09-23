@@ -218,7 +218,7 @@ class Stack:
             return None
         valueToPop = self.stack.pop() # not None
         self.size -= 1
-        if valueToPop == self.getMin(): #  addition for Min, other just return self.stack.pop()
+        if valueToPop == self.getMin(): #  addition for Min, otherwise just return self.stack.pop()
             self.minStack.pop()
         return valueToPop
 
@@ -471,5 +471,3 @@ def binaryTree():
     print(BinaryNode.inorderTraversal_iter(None))
     tree1 = BinaryNode(2, BinaryNode(1), BinaryNode(3))
     print(BinaryNode.inorderTraversal_iter(tree1))
-
-binaryTree()

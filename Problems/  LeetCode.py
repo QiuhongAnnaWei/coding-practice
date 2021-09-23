@@ -1605,6 +1605,52 @@ class Q53: # EASY | def maxSubArray(self, nums: List[int]) -> int:
 
 
 
+class Q54: # MEDIUM | def spiralOrder(self, matrix: List[List[int]]) -> List[int]:
+    # https://leetcode.com/problems/spiral-matrix/
+    # Given an m x n matrix, return all elements of the matrix in spiral order.
+
+    ## using min/max row and col to go right, down, left, up until cannot
+    def spiralOrder(self, matrix):
+        minR, maxR = 0, len(matrix)-1 # inclusive indicies
+        minC, maxC = 0, len(matrix[0])-1 # inclusive indicies
+        output = []
+        while minR<=maxR and minC<=maxC:
+            # right
+            for c in range(minC, maxC+1):
+                output.append(matrix[minR][c])
+            minR += 1
+            # down
+            for r in range(minR, maxR+1):
+                output.append(matrix[r][maxC])
+            maxC -= 1
+            # left
+            if minR-1 != maxR: # different row from right
+                for c in range(maxC, minC-1, -1):
+                    output.append(matrix[maxR][c])
+            maxR -= 1
+            # up
+            if maxC+1 != minC: # different col from down
+                for r in range(maxR, minR-1, -1):
+                    output.append(matrix[r][minC])
+            minC += 1
+        return output
+    ### Time: traverse each element once -> O(mn) ###
+    ### Space: bounds -> O(1) ###
+
+    @staticmethod
+    def test():
+        print("---q54---")
+        q54=Q54()
+        print([1]==q54.spiralOrder([[1]]))
+        print([1,2,3,6,9,8,7,4,5]==q54.spiralOrder([[1,2,3],[4,5,6],[7,8,9]]))
+        print([1,2,3,4,8,12,11,10,9,5,6,7]==q54.spiralOrder([[1,2,3,4],[5,6,7,8],[9,10,11,12]]))
+        print([1,2,3,4,8,12,16,15,14,13,9,5,6,7,11,10]==q54.spiralOrder([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]))
+
+# Q54.test() 
+
+
+
+
 class Q55: # MEDIUM | def canJump(self, nums: List[int]) -> bool:
     # https://leetcode.com/problems/jump-game/
     # Given an array of non-negative integers nums, you are initially positioned at the first index of the array.
@@ -1678,7 +1724,9 @@ class Q56: # MEDIUM | def merge(self, intervals: List[List[int]]) -> List[List[i
     # Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals,
     # and return an array of the non-overlapping intervals that cover all the intervals in the input.
     
-    # sort by start_i and then traverse comparing end of interval_i to start of interval_i+1
+    # RELATED: Q57
+
+    ## sort by start_i and then traverse comparing end of interval_i to start of interval_i+1
     def merge(self, intervals):
         if len(intervals) == 1:
             return intervals
@@ -1696,7 +1744,7 @@ class Q56: # MEDIUM | def merge(self, intervals: List[List[int]]) -> List[List[i
         output.append([intervals[s][0], intervals[e][1]])
         return output
     ### Time: n=len(intervals); O(n log n) + O(n) -> O(n log n) ###
-    ### Space: output-O(n) + s,e - O(1) -> O(n) ###
+    ### Space: output=O(n) + s,e=O(1) -> O(n) ###
     
     @staticmethod
     def test():
@@ -1721,6 +1769,69 @@ class Q56: # MEDIUM | def merge(self, intervals: List[List[int]]) -> List[List[i
 
 
 
+class Q57: # MEDIUM | def insert(self, intervals: List[List[int]], newInterval: List[int]) -> List[List[int]]:
+    # https://leetcode.com/problems/insert-interval/
+    # You are given an array of non-overlapping intervals intervals where intervals[i] = [starti, endi] represent the start
+    # and the end of the ith interval and intervals is sorted in ascending order by starti. You are also given an interval
+    # newInterval = [start, end] that represents the start and end of another interval.
+    
+    # Insert newInterval into intervals such that intervals is still sorted in ascending order by starti and intervals still
+    # does not have any overlapping intervals (merge overlapping intervals if necessary).
+
+    # Return intervals after the insertion.
+
+    # RELATED: Q56
+    
+    ## insert: max(start < newS) + merge: min(start > newE) + pop and insert
+    def insert(self, intervals, newInterval):
+        if len(intervals) == 0:
+            intervals.append(newInterval)
+            return intervals
+        # 1. insert: find max(start<newS)
+        insertIdx = 0
+        for i in range(len(intervals)):
+            if intervals[i][0] >= newInterval[0]:
+                break
+            insertIdx = i+1
+        intervals.insert(insertIdx, newInterval)       
+        # 2. merge: min(start > newE), fix s_val & overlaps and updating e_val and overlape
+        insertIdx = 0
+        s_val, e_val = -1, -1
+        overlaps, overlape = -1,-1 # inclusive idx of first and last interval that are overlapping
+        for curr in range(max(1, insertIdx), len(intervals)): # overlap may only happen starting at insertIdx-1
+            if intervals[curr][0] <= intervals[curr-1][1] or intervals[curr][0] <= e_val: # detected overlap
+                if s_val == -1: s_val = intervals[curr-1][0] # won't be changed because list is ascending
+                if overlaps ==-1: overlaps = curr-1
+                e_val = max(intervals[curr-1][1], intervals[curr][1], e_val)
+                overlape = curr
+            else:
+                if s_val != -1: # already found the 1 region of overlap
+                    break
+        # 3. pop and insert new interval if there are overlaps (changing in place)
+        if overlaps == -1:
+            return intervals
+        for idx in range(overlaps, overlape+1):
+            intervals.pop(overlaps)
+        intervals.insert(overlaps, [s_val, e_val])
+        return intervals
+        
+        ### Time: O(n) + O(n) + overlap_len*O(n) -> around O(n) ###
+        ### Space: O(1) ###
+
+    @staticmethod
+    def test():
+        print("---Q57---")
+        q57 = Q57()
+        print("1", [[1,5],[6,9]]==q57.insert([[1,3],[6,9]], [2,5]))
+        print("2", [[1,2],[3,10],[12,16]]==q57.insert([[1,2],[3,5],[6,7],[8,10],[12,16]], [4,8]))
+        print("3", [[5,7]]==q57.insert([],[5,7]))
+        print("4", [[1,5]]==q57.insert([[1,5]],[2,3]))
+        print("5", [[1,7]]==q57.insert([[1,5]],[2,7]))
+
+# Q57.test()
+
+        
+                
 class Q62: # MEDIUM |  def uniquePaths(self, m: int, n: int) -> int:
     # https://leetcode.com/problems/unique-paths/
     # A robot is located at the top-left corner of a m x n grid.
@@ -1774,7 +1885,7 @@ class Q64: # MEDIUM | def minPathSum(self, grid: List[List[int]]) -> int:
     # which minimizes the sum of all numbers along its path.
     # Note: You can only move either down or right at any point in time.
 
-    # RELATED: similar set up to Q62
+    # RELATED: similar set up as Q62
 
 
     ## dp[r][c]=min path sum from (0, 0) -> can directly use grid for it (modify in place)
@@ -2923,7 +3034,7 @@ class Q136: # EASY | def singleNumber(self, nums: List[int]) -> int:
         print(3==q136.singleNumber([1,2,1,2,3]))
         print(3==q136.singleNumber([1,2,3,2,1]))
 
-Q136.test()
+# Q136.test()
 
 
 
@@ -3102,3 +3213,350 @@ class Q139: # MEDIUM | def wordBreak(self, s: str, wordDict: List[str]) -> bool:
         print("15", False==q139.wordBreak_odp("aaaaaaaab", ["a"]))
 
 # Q139.test()
+
+
+
+class Q142: # MEDIUM | detectCycle(self, head: ListNode) -> ListNode:
+    # https://leetcode.com/problems/linked-list-cycle-ii/
+    # Given a linked list, return the node where the cycle begins. If there is no cycle, return null.
+    # There is a cycle in a linked list if there is some node in the list that can be reached again by 
+    # continuously following the next pointer. 
+    # Notice that you should not modify the linked list.
+
+
+    ## 1) 2 pointer: if there is a loop, slow will be ahead of fast -> distance diff between them / speed dif (1, ensuring divisibilty) = steps to reach the same node k
+    ## 2) steps = 2k - k = n*cycle_len = distance diminished by initial len before cycle (=distance from list start to cycle start, i) + remaining distance caught up from when slow enters cycle, or how far from cycle start slow has travelled until meeting (= distance between cycle start and meeting point, m)
+    ## 3) n*cycle_len=i+m-> start at cycle start, go to meeting node (m steps), take i steps, arrive back at cycle start; start at list start, take i steps, arrive at cycle start
+    def detectCycle(self, head):
+        if head is None:
+            return None
+        slow, fast = head, head
+        met = None
+        while slow.next and fast.next and fast.next.next:
+            slow = slow.next
+            fast = fast.next.next
+            if slow is fast:
+                met = slow
+                break
+        if met is None: # no loop
+            return None
+        pter = head
+        while pter is not met:
+            pter = pter.next
+            met = met.next
+        return pter
+    ### Time: 1st while=O(n) max + 2nd while=i steps=O(n) max = 2*O(n) -> O(n) ###
+    ### Space: O(1) ###
+     
+    @staticmethod
+    def test():
+        q142 = Q142()
+        print("---Q142---")
+        n5 = ListNode(5)
+        n4 = ListNode(4, n5)
+        n3 = ListNode(3, n4)
+        n2 = ListNode(2, n3)
+        n1 = ListNode(1, n2)
+        print("1", q142.detectCycle(None) == None)
+        print("2", q142.detectCycle(n5) == None)
+        print("3", q142.detectCycle(n1) == None)
+        n5.next = n3
+        print("4", q142.detectCycle(n1) == n3)
+        n5.next = n5
+        print("5", q142.detectCycle(n1) == n5)
+        print("6", q142.detectCycle(n5) == n5)
+        n5.next = n2
+        print("7", q142.detectCycle(n1) == n2)
+        n5.next = n1
+        print("8", q142.detectCycle(n1) == n1)
+
+# Q142.test()
+
+
+
+## Review: doubly linked list for O(1) add and remove + its implementation with 2 dict
+class Q146_LRUCache: # MEDIUM | def __init__(self, capacity: int) + def get(self, key: int) -> int + def put(self, key: int, value: int) -> None:
+    # https://leetcode.com/problems/lru-cache/
+    # Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.
+    # Implement the LRUCache class:
+    #    - LRUCache(int capacity) Initialize the LRU cache with positive size capacity.
+    #    - int get(int key) Return the value of the key if the key exists, otherwise return -1.
+    #    - void put(int key, int value) Update the value of the key if the key exists. Otherwise, add the
+    #      key-value pair to the cache. If the number of keys exceeds the capacity from this operation, evict
+    #      the least recently used key.
+    # The functions get and put must each run in O(1) average time complexity.
+
+    ## DS needs to be able to in O(1): remove from middle, add to end, check containment, pop from head
+    ## dict to store key-value pair + doubly linked list to store order (2 dict)
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}
+        self.dummyhead = ""
+        self.dummytail = ""
+        self.next = {self.dummyhead: self.dummytail} # key
+        self.prev = {self.dummytail: self.dummyhead} # key
+    ### Time: O(1) ###
+
+    def remove(self, key):
+        if key not in self.cache:
+            return
+        self.next[self.prev[key]] = self.next[key]
+        self.prev[self.next[key]] = self.prev[key]
+        del self.cache[key], self.prev[key], self.next[key]
+    ### Time: O(1) ###
+        
+    def add(self, key, value):
+        self.cache[key] = value
+        self.prev[key] = self.prev[self.dummytail]
+        self.next[self.prev[self.dummytail]] = key
+        self.next[key] = self.dummytail
+        self.prev[self.dummytail] = key
+    ### Time: O(1) ###
+        
+    def get(self, key):
+        if key not in self.cache:
+            return -1
+        val = self.cache[key]
+        self.remove(key)
+        self.add(key, val)
+        return val
+    ### Time: O(1) ###
+
+    def put(self, key, value):
+        if key in self.cache:
+            self.remove(key)
+            self.add(key, value)
+        else:
+            self.add(key, value)
+            if len(self.cache) > self.capacity:
+                self.remove(self.next[self.dummyhead])
+    ### Time O(1) ###
+
+
+
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Q148: # MEDIUM | def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+    # https://leetcode.com/problems/sort-list/
+    # Given the head of a linked list, return the list after sorting it in ascending order.
+    # Follow up: Can you sort the linked list in O(n logn) time and O(1) memory (i.e. constant space)?
+
+    ## (Not implemented) optimized solution of O(nlogn) time and O(1) memory: bottom up merge sort
+    
+    ## merge sort: keeps splitting until sublist of size 1, then merge
+    def sortList(self, head):
+        """Divides the linked List that starts with head into 2 halves"""
+        if head is None or head.next is None:
+            return head
+        dummyHead = ListNode(next=head)
+        l, r = dummyHead, dummyHead
+        while l.next is not None and r.next is not None and r.next.next is not None:
+            l = l.next
+            r = r.next.next
+        second = l.next
+        l.next = None # NOTE: instead of using listLen, set next of the end of left list to None
+        return self.merge(self.sortList(head), self.sortList(second))
+    def merge(self, left, right):
+        """Merge 2 sorted lists"""
+        dummyHead = ListNode()
+        curTail = dummyHead
+        while left is not None and right is not None:
+            if left.val <= right.val:
+                curTail.next, left = left, left.next
+            else:
+                curTail.next, right = right, right.next
+            curTail = curTail.next   
+        if left is None:
+            curTail.next = right
+        if right is None:
+            curTail.next = left
+        return dummyHead.next
+    ### Time: divide/split=logn times*n each time=O(nlogn) + merge=logn*n=O(nlogn) ->O(nlogn) ###
+    ### Space: heap=max at one pt O(n) + call stack=O(log n) -> O(n) ###
+        
+
+class Q371: # MEDIUM | def getSum(self, a: int, b: int) -> int:
+    # https://leetcode.com/problems/sum-of-two-integers/
+    # Given two integers a and b, return the sum of the two integers without using the operators + and -.
+
+    def getSum(self, a, b):
+        # 32 bits integer max
+        MAX = 0x7FFFFFFF
+        # 32 bits interger min
+        MIN = 0x80000000
+        # mask to get last 32 bits
+        mask = 0xFFFFFFFF
+        while b != 0:
+            # ^ get different bits and & gets double 1s, << moves carry
+            a, b = (a ^ b) & mask, ((a & b) << 1) & mask
+        # if a is negative, get a's 32 bits complement positive first
+        # then get 32-bit positive's Python complement negative
+        return a if a <= MAX else ~(a ^ mask) # >MAX=past 32 bits: fill in leading 1
+    
+    ## Iterative: bitwise XOR (1^0->1) to directly sum + bitwise AND (1&1=1) to carry (recursive call)
+    def getSum_iter(self, a: int, b: int) -> int:
+        a, b = a ^ b, (a & b) << 1
+        while (b!=0):
+            a, b = a ^ b, (a & b) << 1
+        return a
+    
+    ## Recursion: bitwise XOR (1^0->1) to directly sum + bitwise AND (1&1=1) to carry (recursive call)
+    def getSum_rec(self, a: int, b: int) -> int:
+        xor = a ^ b  # directly summed
+        andl = (a & b) << 1 # 1s to carry to the left
+        if (andl == 0): # base case
+            return xor
+        else:
+            return self.getSum(xor, andl)
+
+    @staticmethod
+    def test():
+        print("---Q371---")
+        q371=Q371()
+        print("1", 3==q371.getSum(1,2))
+        print("2", 5==q371.getSum(2,3))
+        print("3", 1==q371.getSum(-2,3))
+        print("4", 0==q371.getSum(-3,3))
+        print("5", 0==q371.getSum(-1000,1000))
+        print("6", -1105==q371.getSum(-1000,-105))
+        print("7", 1212==q371.getSum(990,222))
+
+# Q371.test()
+
+
+
+## REVIEW: keeping the best so far (shortestSoFar) + smartly surveying that info later (only look to the left of win start)
+## REVIEW: sliding window with fixed end ( for r in range(len(arr)) ), for ease with updtaing shortestSoFar
+class Q1477: # MEDIUM |  def minSumOfLengths_initial(self, arr: List[int], target: int) -> int:
+    # https://leetcode.com/problems/find-two-non-overlapping-sub-arrays-each-with-target-sum/
+    # Given an array of integers arr and an integer target. 
+
+    # You have to find two non-overlapping sub-arrays of arr each with a sum equal target. There can be multiple answers
+    # so you have to find an answer where the sum of the lengths of the two sub-arrays is minimum.
+
+    # Return the minimum sum of the lengths of the two required sub-arrays, or return -1 if you cannot find such two sub-arrays.
+
+
+    ## optimized: sliding window one pass, when found subarray: 1) find best combo so far + 2) update shortestSoFar
+    ## shortestSoFar: [ at idx=i: length of shortest subarray in arr[:i+1] ]
+    def minSumOfLengths(self, arr, target):
+        l=0 # inculsive index
+        minLSum = -1
+        shortestSoFar = [-1 for _ in range(len(arr))]
+        currSum = 0
+        for r in range(len(arr)):
+            currSum += arr[r]
+            while currSum > target: # NOTE: having while before -> change currSum to < or == target
+                currSum -= arr[l]
+                l+=1            
+            if currSum == target:
+                saL = r-l+1
+                if shortestSoFar[l-1] != -1: # else, no combo
+                    minLSum = min(minLSum, shortestSoFar[l-1]+saL) if minLSum != -1 else shortestSoFar[l-1]+saL
+                shortestSoFar[r] = min(saL, shortestSoFar[r-1]) if shortestSoFar[r-1]!=-1 else saL
+            elif currSum < target: # no subarray ending at r
+                shortestSoFar[r]= shortestSoFar[r-1]
+        return minLSum
+    ### Time: one for loop and each ele at max iterated twice (added and removed from win) -> O(n) ###
+    ### Space: O(1) + shortestSoFar=O(n) -> O(n) ###
+    
+    @staticmethod
+    def test():
+        print("---Q1477---")
+        q1477=Q1477()
+        print("1", -1==q1477.minSumOfLengths([3],4))
+        print("2", -1==q1477.minSumOfLengths([3],3))
+        print("3", 2==q1477.minSumOfLengths([3,2,2,4,3],3))
+        print("4", 3==q1477.minSumOfLengths([1,2,2,4,3],3))
+        print("5", 3==q1477.minSumOfLengths([1,2,2,4,3,2,1],3))
+        print("6", 5==q1477.minSumOfLengths([1,2,2,4,1,1,1,5],3))
+        print("7", 2==q1477.minSumOfLengths([7,3,4,7],7))
+        print("8", 2==q1477.minSumOfLengths([3,4,7,7],7))
+        print("9", -1==q1477.minSumOfLengths([4,3,2,6,2,3,4],6))
+        print("10", -1==q1477.minSumOfLengths([5,5,4,4,5],3))
+        print("11", -1==q1477.minSumOfLengths([1,2,3,3],6))
+        print("12", 6==q1477.minSumOfLengths([1,2,3,1,2,3],6))
+        print("13", 6==q1477.minSumOfLengths([1,2,3,3,2,1],6))
+        print("14", 2==q1477.minSumOfLengths([3,3],3))
+        print("15", 2==q1477.minSumOfLengths([3,1000,3],3))
+
+
+
+    ## find all subarrays + find best combo
+    def minSumOfLengths_initial(self, arr, target):
+        # 1. find all subarrays that sum to target - O(n)
+        subarrs = [] # None or r index of subarray that starts at index i
+        l,r = 0,0 # inclusive indices
+        cursum = arr[0]
+        while l<=r and r < len(arr):
+            if cursum < target:
+                r+=1
+                if r>= len(arr): 
+                    subarrs.append(None)
+                    break
+                cursum += arr[r]
+            elif cursum == target:
+                subarrs.append(r)
+                cursum -= arr[l]
+                if l==r: 
+                    r+=1
+                    if r>= len(arr): break
+                    cursum += arr[r]
+                l+=1
+            else:
+                while cursum > target:
+                    subarrs.append(None)
+                    cursum -= arr[l]
+                    if l==r: 
+                        r+=1
+                        if r>= len(arr): break
+                        cursum += arr[r]
+                    l+=1
+        # print(subarrs)
+        # [3, 2, 3, 1, 4, 1] # 5
+        # if < target: expand right
+        # if = target: shrink left
+        # if > target: shrink left until <= target again
+        # [ None or subarray ]
+        
+        # 2. from list of overalpping subarrays, find 2 shortest nonoverlapping - O(n^2)
+        # [1,2,3,3,2,1] # target 6
+        len1, len2 = -1, None
+        sum = None
+        for l1 in range(len(subarrs)):
+            len2 = None
+            r1 = subarrs[l1]
+            if r1 is None:
+                continue
+            len1 = r1-l1+1
+            for l2 in range(r1+1, len(subarrs)):
+                if subarrs[l2] is None:
+                    continue
+                else:
+                    len2 = subarrs[l2]-l2+1 if len2 is None else min(len2, subarrs[l2]-l2+1)
+            if len2 is not None: # shortest matching subarray for [l1,r1]
+                # print(l1,r1,len1,len2)
+                sum = len1+len2 if sum is None else min(sum, len1+len2)
+        if sum is None:
+            return -1
+        else:
+            return sum
+
+# Q1477.test()
+
+
+
+
+
+
+
+
+# CITADEL Interview 1
+# https://baihuqian.github.io/2018-08-16-range-addition/
+# def Q370:
+
+# CITADEL Interview 2
+# https://leetcode.com/discuss/interview-question/901091/how-to-write-an-efficient-solution-for-this-challenge-portfolio-balances-hackerrank
