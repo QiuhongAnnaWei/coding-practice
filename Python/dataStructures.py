@@ -471,3 +471,57 @@ def binaryTree():
     print(BinaryNode.inorderTraversal_iter(None))
     tree1 = BinaryNode(2, BinaryNode(1), BinaryNode(3))
     print(BinaryNode.inorderTraversal_iter(tree1))
+
+# Python program for insert and search
+# operation in a Trie
+ 
+class TrieNode:
+    def __init__(self):
+        self.children = [None]*26
+        self.isEndOfWord = False # True if node represent the end of the word
+ 
+class Trie:
+    def __init__(self):
+        self.root = self.getNode()
+ 
+    def getNode(self): 
+        return TrieNode() # Returns new trie node (initialized to NULLs)
+ 
+    def _charToIndex(self,ch):
+        # private helper function, converts key current char into index
+        return ord(ch)-ord('a') # use only 'a' through 'z' and lower case
+ 
+    def insert(self,key): # O(n)
+        # If not present, inserts key into trie; If the key is prefix of trie node, marks leaf node
+        pCrawl = self.root
+        for level in range(len(key)):
+            index = self._charToIndex(key[level])
+            if not pCrawl.children[index]: # if current character is not present
+                pCrawl.children[index] = self.getNode()
+            pCrawl = pCrawl.children[index]
+        pCrawl.isEndOfWord = True # mark last node as leaf
+ 
+    def search(self, key): # O(n)
+        # Search key in the trie, returns true if key is present in trie
+        pCrawl = self.root
+        for level in range(len(key)):
+            index = self._charToIndex(key[level])
+            if not pCrawl.children[index]:
+                return False
+            pCrawl = pCrawl.children[index]
+        return pCrawl.isEndOfWord
+ 
+# driver function
+def trierun():
+    # Input keys (use only 'a' through 'z' and lower case)
+    keys = ["the","a","there","anaswe","any", "by","their"]
+    output = ["Not present in trie", "Present in trie"]
+    t = Trie()
+    # Construct trie
+    for key in keys:
+        t.insert(key)
+    # Search for different keys
+    print("{} ---- {}".format("the",output[t.search("the")]))
+    print("{} ---- {}".format("these",output[t.search("these")]))
+    print("{} ---- {}".format("their",output[t.search("their")]))
+    print("{} ---- {}".format("thaw",output[t.search("thaw")]))
