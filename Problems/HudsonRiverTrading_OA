@@ -1,0 +1,142 @@
+
+## Task 1: minimum number of turns of 2 sets of dices to make sum equal
+from heapq import heappush, heappop, heapify
+
+def solution(A, B):
+    ## set up
+    diff = sum(A) - sum(B)
+    if diff > 0: # A>B
+        maxH = [-1*v for v in A]
+        minH = B
+    else: # B>A
+        maxH = [-1*v for v in B]
+        minH = A
+    heapify(minH)
+    heapify(maxH)
+    diff = abs(diff)
+    turnCt = 0
+    ## greedy: smaller list - set min to 6; larger list - set max to 1
+    while diff > 0:
+        smallMin = minH[0] # 2 -> set to 6
+        largeMax = maxH[0] * -1 # 5 -> set to 1
+        if smallMin == 6 and largeMax == 1: # cannot improve further
+            return -1
+        turnCt += 1
+        if 6-smallMin >= largeMax - 1: # change smallMin to 6
+            if 6-smallMin >= diff:
+                return turnCt
+            heappop(minH)
+            heappush(minH, 6)
+            diff -= (6-smallMin)
+        else: # change largeMax to 1
+            if largeMax - 1 >= diff:
+                return turnCt
+            heappop(maxH)
+            heappush(maxH, -1)   
+            diff -= (largeMax-1)     
+    return turnCt
+
+# Test inputs
+    # [[1], [1]]
+    # [[5], [1]]
+    # [[1, 2], [4]]
+    # [[1, 1, 1], [2]]
+    # [[1], [1, 1, 1]]
+    # [[6], [1, 1, 1, 1, 1, 1, 1]]
+    # [[6],[6,6,6]]
+    # [[1,2], [4, 5]]
+    # [[1,3,5,7], [2,2,2,2]]
+    # [[6,2,3,1,4], [2,3,1,5,6,1,1,4]]
+
+
+
+## Task 2: if it is possible for A to reach bottom right (cannot be seen by guards or step onto occupied cell)
+
+def solution(B):
+    ## set non-reachable/observed cells - 4 traversals
+    B = [[c for c in s] for s in B]
+    for rI in range(len(B)):
+        right = False
+        for cI in range(len(B[0])): # '>',
+            if B[rI][cI] == 'A':
+                A = (rI, cI)
+            if B[rI][cI] == '>':
+                right = True
+            elif right: # ., X, other guard
+                if B[rI][cI] == '.':
+                    B[rI][cI] = "-"
+                else: # X, other guard
+                    if B[rI][cI] == 'A':
+                        return False
+                    right = False
+        left = False
+        for cI in reversed(list(range(len(B[0])))): # '<'
+            if B[rI][cI] == "-":
+                continue
+            if B[rI][cI] == '<':
+                left = True
+            elif left: # ., X, other guard
+                if B[rI][cI] == '.':
+                    B[rI][cI] = "-"
+                else: # X, other guard
+                    if B[rI][cI] == 'A':
+                        return False
+                    left = False
+     
+    for cI in range(len(B[0])): # '>',
+        down = False
+        for rI in range(len(B)):
+            if B[rI][cI] == "-":
+                continue
+            if B[rI][cI] == 'v':
+                down = True
+            elif down: # ., X, other guard
+                if B[rI][cI] == '.':
+                    B[rI][cI] = "-"
+                else: # X, other guard
+                    if B[rI][cI] == 'A':
+                        return False
+                    down = False
+        up = False
+        for rI in reversed(list(range(len(B)))):
+            if B[rI][cI] == "-":
+                continue
+            if B[rI][cI] == '^':
+                up = True
+            elif up: # ., X, other guard
+                if B[rI][cI] == '.':
+                    B[rI][cI] = "-"
+                else: # X, other guard
+                    if B[rI][cI] == 'A':
+                        return False
+                    up = False
+    if B[len(B)-1][len(B[0])-1] == "-":
+        return False
+        
+    ## find path on changed board: dfs
+    visited = set()
+    stack = [A] # (rI, cI)
+    while stack:
+        cur = stack.pop()
+        if cur[0] == len(B)-1 and cur[1] == len(B[0])-1:
+            return True
+        if cur in visited:
+            continue
+        visited.add(cur)
+        if cur[0]-1 >= 0 and B[cur[0]-1][cur[1]] == ".":
+            stack.append((cur[0]-1, cur[1]))
+        if cur[0]+1 <= len(B)-1 and B[cur[0]+1][cur[1]] == ".":
+            stack.append((cur[0]+1, cur[1]))
+        if cur[1]-1 >= 0 and B[cur[0]][cur[1]-1] == ".":
+            stack.append((cur[0], cur[1]-1))
+        if cur[1]+1 <= len(B[0])-1  and B[cur[0]][cur[1]+1] == ".":
+            stack.append((cur[0], cur[1]+1))
+    return False
+
+# Test inputs:
+    # [".<.>", "^v.v", ">.X^", "...A"] # T
+    # ["X<.>", "^v.v", ">.X^", "A..."] # F
+    # [".<.>", "^.Av", ">.X^", "...."] # F 
+    # [".<.>", "^..v", ">.X^", ".A.."] # T
+    # [".v.>", "^..v", ">.X^", ".A.."] # F
+    # [".<.>", "...v", ".v.^", "A..."] # T

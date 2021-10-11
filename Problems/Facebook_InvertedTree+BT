@@ -1,0 +1,160 @@
+# 2021-09-29
+# Welcome to Facebook!
+
+# This is just a simple shared plaintext pad, with no execution capabilities.
+
+# When you know what language you would like to use for your interview,
+# simply choose it from the dropdown in the top bar.
+
+# Enjoy your interview!
+
+
+# Suppose we have some input data describing a graph of relationships between parents and children over multiple generations. The data is formatted as a list of (parent, child) pairs, where each individual is assigned a unique positive integer identifier.
+
+
+# For example, in this diagram, 3 is a child of 1 and 2, and 5 is a child of 4:
+
+# 1   2    4   15
+#  \ /   / | \ /
+#   3   5  8  9
+#    \ / \     \
+#     6   7    11
+
+# Sample input/output (pseudodata):
+
+# parentChildPairs = [
+#     (1, 3), (2, 3), (3, 6), (5, 6), (15, 9),
+#     (5, 7), (4, 5), (4, 8), (4, 9), (9, 11)
+# ]
+
+
+# Write a function that takes this data as input and returns two collections: one containing all individuals with zero known parents, and one containing all individuals with exactly one known parent.
+
+
+# Output may be in any order:
+
+# findNodesWithZeroAndOneParents(parentChildPairs) => [
+#   [1, 2, 4, 15],       // Individuals with zero parents
+#   [5, 7, 8, 11]        // Individuals with exactly one parent
+# ]
+
+# 1   2   
+#  \ /   
+#   3   
+#    \ 
+#     6   
+# [(1,3),(2,3),(3,6)]
+
+def findNodesWithZeroAndOneParents(parentChildPairs): # length of input = n pairs
+    node2PNum = {} # identifier: number of parents
+    for parent, child in parentChildPairs: # O(n)
+        if parent not in child2PNum:
+            node2PNum[parent] = 0
+        if child not in child2PNum:
+            node2PNum[child] = 1
+        else:
+            node2PNum[child] += 1
+    # node2PNum = {1:0, 3:2, 2:0, 6:1}
+    noParents, oneParents = [], []
+    for node in node2PNum: # O(n)
+        if node2PNum[node]==0:
+            noParents.append(node)
+        elif node2PNum[node]==1:
+            oneParents.append(node)
+    return [noParents, oneParents]
+    # noParents = [1,2], oneParents=[6]
+    ### Time: O(n) ###
+    ### Space: node2PNum=O(2n) -> O(n) + noParents + oneParents -> O(n) ###
+    
+# 1   2    4   15
+#  \ /   / | \ /
+#   3   5  8  9
+#    \ / \     \
+#     6   7    11
+
+# write a functin return true if two nodes have common ancestor
+# hasCommonAncestor(6, 11) —> true
+# hasCommonAncestor(3, 11) —> false
+        
+
+# 1   2   
+#  \ / \ 
+#   3   5
+#    \ 
+#     6   
+# [(1,3),(2,3),(3,6),[2,5]]
+
+# 6, 5
+# 2, 5
+def hasCommonAncestor(parentChildPairs, node1, node2):
+    node2Par = {} # {child: [directparent1, directparent2]}
+    for parent, child in parentChildPairs: # O(n)
+        if parent not in child2PNum:
+            node2Par[parent] = []
+        if child not in child2PNum:
+            node2Par[child] = [parent]
+        else:
+            node2Par[child].appent(parent)
+    # node2Par = {1:[], 3:[1,2], 2:[],6:[3],5:[2]}
+    node1Anc = hasCommonAncestor_helper(node1, node2Par, set()) # {3,1,2} # O(n)
+    node2Anc = hasCommonAncestor_helper(node2, node2Par, set()) # {2} # O(N)
+    return len(node1Anc.intersection(node2Anc)) != 0
+### space: O(n) for heap + O(n) for call stack -> O(n) ###
+# call on 6: ancSoFar = {3}
+    # call on 3: ancSoFar = {3, 1, 2}
+        # call on 1: {3, 1}
+        # call on 2: {3, 1, 2}
+        # 3 returns {3,1,2}
+def hasCommonAncestor_helper(node, node2Par, ancSoFar):
+    '''Return a set of all the parents of node in node2Par'''
+    if len(node2Par[node]) == 0:
+        ancSoFar.add(node)
+        return ancSoFar
+    for directParent in node2Par[node]:
+        ancSoFar.add(directParent)
+        ancSoFar = hasCommonAncestor_helper(directParent, node2Par, ancSoFar)
+    return ancSoFar
+    ### Time: Number of calls: O(n) * O(1) -> O(n) ###
+    
+    
+# //     3
+# //    / \
+# //   9   7
+# //  / \   \
+# // 2   6   4
+
+# // 2, 6 -> 9
+# // 7, 6 -> 3; 9, 6 --> 9
+
+def lowestCommonAncestor(root, node1, node2):
+    pathToNode1 = lowestCommonAncestor_helper(root, node1)
+    pathToNode2 = lowestCommonAncestor_helper(root, node2)
+    # comparison
+
+def lowestCommonAncestor_helper(node, tar, pathSoFar):
+    if node.val == tar:
+        pathSoFar.append(node.val)
+        return pathSoFar
+    if node.left:
+        pathSoFar.append(node.left.val)
+        pathSoFar = lowestCommonAncestor_helper(node.left, tar, pathSoFar)
+        if pathSoFar[-1] == tar:
+            return pathSoFar
+        else:
+            pathSoFar.pop()
+    if node.right:
+        pathSoFar = lowestCommonAncestor_helper(node.right, tar, pathSoFar)
+        # similar
+    return pathSoFar
+        
+                               
+                                
+    
+    
+    
+    
+    
+    
+    
+    
+    
