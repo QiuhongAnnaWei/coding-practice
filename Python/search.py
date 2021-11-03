@@ -5,7 +5,7 @@ def binarySearch_rec(arr, x):
     return binarySearch_helper(arr, 0, len(arr)-1, x)
 def binarySearch_helper (arr, l, r, x):
     # 2 implementations: iterative (while l <= r) or recursive
-    """recursiver helper function for binary search
+    """recursive helper function for binary search
     
     parameters:
     r: right index of the range to search for (inclusive)

@@ -749,6 +749,7 @@ class Q21: # EASY | def mergeTwoLists(self, l1: ListNode, l2: ListNode) -> ListN
 # Q21.test()
 
 
+## REVIEW: append('(') -> recursive call -> pop()
 class Q22: # MEDIUM | def generateParenthesis(self, n: int) -> List[str]:
     # https://leetcode.com/problems/generate-parentheses/
     # Given n pairs of parentheses, 
@@ -767,7 +768,7 @@ class Q22: # MEDIUM | def generateParenthesis(self, n: int) -> List[str]:
     # iterate through all combinations from 0 to N: (4^N)/(N*sqrt(N)) + that for N-1 + ... + 0 -> (4^N)/(N*sqrt(N)) * N/2 -> 4^N/(sqrt(N))
     ### Space: dp -> O(N) ###
 
-    ## at each step, can either open an untouched pair, or close an opened pair
+    ## At each step, can either open an untouched pair, or close an opened pair
     def generateParenthesis_rec(self, N):
         untouchedPairCt = N
         openedPairCt = 0
@@ -1723,6 +1724,7 @@ class Q55: # MEDIUM | def canJump(self, nums: List[int]) -> bool:
 
 
 
+# REVIEW: merge interval
 class Q56: # MEDIUM | def merge(self, intervals: List[List[int]]) -> List[List[int]]:
     # https://leetcode.com/problems/merge-intervals/
     # Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals,

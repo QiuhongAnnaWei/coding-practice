@@ -417,13 +417,13 @@ class BinaryNode:
         def pre_rec(root, trav):
             if root:
                 trav.append(root.nodeVal)
-                if root.left: pre_rec(root.left, trav) # if saves fun calls: base case = leaf node instead of None
+                if root.left: pre_rec(root.left, trav) # if saves func calls: base case = leaf node instead of None
                 if root.right: pre_rec(root.right, trav)
         trav = []
         pre_rec(root, trav)
         return trav
 
-    def inOrderTrav(root):
+    def dinOrderTrav(root):
         '''DFS-In Order Traversal 中序遍历:  left subtree -> node -> right subtree
         recursive implementation'''
         def in_rec(root, trav):

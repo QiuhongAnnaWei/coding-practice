@@ -1,0 +1,118 @@
+# 
+# Your previous Markdown content is preserved below:
+# 
+# At Stripe we keep track of where the money is and move money between bank accounts to make sure their balances are not below some threshold. This is for operational and regulatory reasons, e.g. we should have enough funds to pay out to our users, and we are legally required to separate our users' funds from our own. This interview question is a simplified version of a real-world problem we have here.
+# 
+# Let's say there are at most 500 bank accounts, some of their balances are above 100 and some are below. How do you move money between them so that they all have at least 100?
+# 
+# Just to be clear we are not looking for the optimal solution, but a working one.
+# 
+# Example input:
+# dict: {"unique name of the account": balance}
+#   - AU: 80
+#   - US: 140
+#   - MX: 110
+#   - SG: 120
+#   - FR: 70
+#  
+# Output:
+# print
+#   - from: US, to: AU, amount: 20  
+#   - from: US, to: FR, amount: 20
+#   - from: MX, to: FR, amount: 10
+
+
+#  us -> fr: 1
+#  us -> fr: 1
+
+
+# Should support empty input
+# balances: integer, can be negative
+# Always enough to satisfy the objective
+
+from collections import OrderedDict
+from operator import itemgetter
+# >>> data = {1: 'b', 2: 'a'}
+# >>> d = OrderedDict(sorted(data.items(), key=itemgetter(1)))
+# >>> d
+# OrderedDict([(2, 'a'), (1, 'b')])
+# >>> d.values()
+# ['a', 'b']
+
+
+def balanceAccounts(acc2bal):
+    """prints out the transactions of a working solution"""
+    if len(acc2bal) == 0:
+        print("No valid information given")
+        return
+    # Sort in ascending order
+    acc2bal = OrderedDict(sorted(acc2bal.items(), key=itemgetter(1)))
+    print(acc2bal)
+    # 2 pointer approach: repeatedly moving money from r to l
+    keys = list(acc2bal.keys())
+    l, r = 0, len(keys)-1
+    while acc2bal[keys[l]] < 100: # Checking if r >= 100: if so, stop
+        sender = keys[r]
+        receiver = keys[l]
+        if acc2bal[sender] < 100:
+            print("Oops, no working solution")
+            return
+        amount = min(100-acc2bal[receiver], acc2bal[sender]-100)
+        print(f'from: {sender}, to: {receiver}, amount: {amount}')
+        acc2bal[sender] = acc2bal[sender]-amount
+        acc2bal[receiver] = acc2bal[receiver]+amount
+        if 100-acc2bal[receiver] > acc2bal[sender]-100:
+            # receiver needs more than what current sender has
+            r -= 1
+        elif 100-acc2bal[receiver] == acc2bal[sender]-100:
+            r -= 1
+            l += 1
+        else:
+            # sender has more than what receiver needs
+            l += 1
+    print(acc2bal)
+
+   
+# print(1)
+# acc2bal = {"AU": 80, "US": 140, "MX": 110}
+# balanceAccounts(acc2bal)
+
+# print(2)
+# acc2bal = {"AU": 80, "US": 140, "MX": 110, "SG": 120, "FR":70}
+# balanceAccounts(acc2bal)
+
+print(3)
+acc2bal = { "US": 300, "MX": 110, "AU": -80, "SG": 120, "FR":70}
+balanceAccounts(acc2bal)
+
+print(4)
+acc2bal = { "US": 110, "MX": 110, "AU": 60, "SG": 105, "FR":115}
+balanceAccounts(acc2bal)
+
+print(5)
+acc2bal = { "MX": 90, "AU": 90, "US": 140, "SG": 95, "FR":85}
+balanceAccounts(acc2bal)
+
+print(6)
+acc2bal = {}
+balanceAccounts(acc2bal)
+
+print(7)
+acc2bal = { "US": 40, "AU": -80, "SG": 110}
+balanceAccounts(acc2bal)
+
+
+
+#   - AU: 80
+#   - US: 140
+#   - MX: 110
+#   - SG: 120
+#   - FR: 70
+
+
+
+
+
+
+
+

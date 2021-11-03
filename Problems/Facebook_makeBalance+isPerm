@@ -1,0 +1,83 @@
+# Welcome to Facebook!
+
+# This is just a simple shared plaintext pad, with no execution capabilities.
+
+# When you know what language you would like to use for your interview,
+# simply choose it from the dropdown in the top bar.
+
+# Enjoy your interview!
+
+# 1. Add minimum amount of parentheses to make a string of parentheses balanced
+# input string ( ) 
+# return #
+
+# Input: ((( Output: 3
+# Input: (())  0
+# Input: )(  2 
+# Input: ()) 1
+
+# check in the beginning and end for closing parentheses
+# counter of opened parenthese
+def makeBalance(s):
+    parToAdd = 0
+    openCt = 0
+    for c in s:
+         if c == '(':
+                openCt += 1
+         elif c == ')':
+            if openCt == 0:
+                parToAdd += 1
+            else:
+                openCt -= 1
+    return parToAdd + openCt
+### Time: O(n), where n is length of string s ###
+### Space: O(1) ###
+
+
+
+
+# 2. Check if Array is a Permutation of 0, 1, ..., n-1
+
+# Given an array of integers of length n, determine if the array consists exactly of the integers 0, 1, ..., n-1.
+
+# Input: [0, 1, 2, 3] Output: true
+# Input: [0, 1, 4, 3, 6] => false (error case 2)
+# Input: [3, 1, 0, 2] => true
+# Input: [1,2,3,4,0,0] => false (error case 1)
+    
+# Input: [] => true
+
+
+
+def isPerm(arr):
+    if len(arr) == 0:
+        return true
+    n = len(arr)
+    perm = [False for _ in range(n)] 
+    for num in arr:
+        if num < 0 or num >= n:
+            return False
+        if perm[num]:
+            return False
+        perm[num] = True
+    return all(perm) # and operation over all the boolean values
+### Time: 3 * O(n) -> O(n), where n is length of arr ###
+### Space: perm = O(n) ###
+
+
+# For loop (traversal) and modify array in place - in progress
+### Time: O(n) ###
+### space: no extra space, O(1) ###
+def isPerm(arr):
+    if len(arr) == 0:
+        return true
+    while num != -1
+        if num < 0 or num >= len(arr):
+            return False
+        if arr[num] == -1: # seen before
+            return False
+        temp = arr[num]
+        arr[num] = -1
+    return 
+
+
